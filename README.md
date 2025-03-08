@@ -1,6 +1,6 @@
-# Vsmart Sales Tracker
+# Vsmart Tune-Up Sales Tracker
 
-A Laravel-based customer and device management system for Vsmart, featuring:
+A Laravel-based customer and device management system for Vsmart Tune-Up, featuring:
 
 - Customer management with contact details and social media links
 - Device tracking for each customer
@@ -42,8 +42,8 @@ A Laravel-based customer and device management system for Vsmart, featuring:
 
 1. Clone the repository
 ```bash
-git clone [repository-url]
-cd vsmart-sales-tracker
+git clone https://github.com/jalalon11/vsmart-tuneup-sales.git
+cd vsmart-tuneup-sales
 ```
 
 2. Install dependencies
@@ -81,4 +81,4 @@ php artisan serve
 
 ## Author
 
-[Your Name]
+Jalal Jalalon
