@@ -9,7 +9,7 @@ A Laravel-based customer and device management system for Vsmart Tune-Up, featur
 - Real-time updates using AJAX
 - Smooth animations and transitions
 
-_Last updated: March 9, 2025_
+_Last updated: March 10, 2025_
 
 ## Features
 
@@ -83,4 +83,4 @@ php artisan serve
 
 ## Author
 
-Jalal Jalalon
+Vincent Jalalon
