@@ -1,48 +1,170 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full" 
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full dark-transition" 
     x-data="{ 
         darkMode: localStorage.getItem('darkMode') === 'true',
-        pageLoading: false
-    }" 
-    x-init="
-        $watch('darkMode', val => {
-            localStorage.setItem('darkMode', val);
-            document.documentElement.classList.toggle('dark-transition');
-        });
+        pageLoading: false,
         
-        window.addEventListener('beforeunload', () => pageLoading = true);
-        
-        // Handle navigation without page refresh
-        document.addEventListener('click', (e) => {
-            const link = e.target.closest('a');
-            if (link && link.href && link.href.startsWith(window.location.origin) && !link.hasAttribute('download')) {
-                e.preventDefault();
-                navigate(link.href);
-            }
-        });
-
-        async function navigate(url) {
-            pageLoading = true;
+        async navigate(url) {
+            if (this.pageLoading) return;
+            this.pageLoading = true;
+            
+            const content = document.querySelector('.page-content');
+            
             try {
                 const response = await fetch(url);
                 const html = await response.text();
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
-                document.querySelector('main').innerHTML = doc.querySelector('main').innerHTML;
+
+                // Update content
+                const newContent = doc.querySelector('.page-content');
+                if (newContent) {
+                    content.innerHTML = newContent.innerHTML;
+                }
+
+                // Update title
+                const newTitle = doc.querySelector('title');
+                if (newTitle) {
+                    document.title = newTitle.textContent;
+                }
+
+                // Update URL
                 window.history.pushState({}, '', url);
-                document.querySelectorAll('a').forEach(a => {
-                    a.classList.remove('border-blue-500', 'text-gray-900', 'dark:text-white');
-                    a.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
-                    if (a.getAttribute('href') === url) {
-                        a.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
-                        a.classList.add('border-blue-500', 'text-gray-900', 'dark:text-white');
+
+                // Update navigation active states
+                this.updateNavigation(url);
+
+                // First, execute any inline scripts that might define functions
+                const inlineScripts = Array.from(doc.querySelectorAll('script:not([src])'));
+                inlineScripts.forEach(script => {
+                    try {
+                        const newScript = document.createElement('script');
+                        newScript.textContent = script.textContent;
+                        document.body.appendChild(newScript);
+                    } catch (err) {
+                        console.error('Error executing inline script:', err);
                     }
                 });
+
+                // Then handle external scripts
+                const externalScripts = Array.from(doc.querySelectorAll('script[src]'));
+                await Promise.all(externalScripts.map(script => {
+                    return new Promise((resolve, reject) => {
+                        const newScript = document.createElement('script');
+                        newScript.src = script.src;
+                        newScript.onload = resolve;
+                        newScript.onerror = reject;
+                        document.body.appendChild(newScript);
+                    });
+                }));
+
+                // Wait a brief moment for scripts to be ready
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                // Reinitialize Alpine.js components
+                Alpine.initTree(content);
+
+                // Reinitialize Select2
+                if (window.jQuery && jQuery().select2) {
+                    jQuery('.select2').select2({
+                        width: '100%',
+                        dropdownParent: document.body
+                    });
+                }
+
+                // Handle modals initialization
+                const modals = document.querySelectorAll('[x-data]');
+                modals.forEach(modal => {
+                    if (modal._x_dataStack) {
+                        Alpine.initTree(modal);
+                    }
+                });
+
+                // Reinitialize Chart.js
+                const chartCanvas = document.getElementById('dailySalesChart');
+                if (chartCanvas) {
+                    // Destroy existing chart if it exists
+                    const existingChart = Chart.getChart(chartCanvas);
+                    if (existingChart) {
+                        existingChart.destroy();
+                    }
+                    
+                    // Wait a brief moment for Chart.js to be ready
+                    setTimeout(() => {
+                        // If the initialization function exists, call it
+                        if (typeof window.initializeDailySalesChart === 'function') {
+                            window.initializeDailySalesChart();
+                        } else {
+                            console.warn('Daily sales chart initialization function not found');
+                        }
+                    }, 100);
+                }
+
+                // Execute any stacked scripts
+                const stackedScripts = doc.querySelector('#script-container');
+                if (stackedScripts) {
+                    const scriptContent = stackedScripts.textContent.trim();
+                    if (scriptContent) {
+                        const newScript = document.createElement('script');
+                        newScript.textContent = scriptContent;
+                        document.body.appendChild(newScript);
+                    }
+                }
+                
+                // Dispatch a custom event to let page scripts know navigation is complete
+                document.dispatchEvent(new CustomEvent('page:loaded'));
+
             } catch (error) {
+                console.error('Navigation error:', error);
                 window.location.href = url;
             }
-            pageLoading = false;
+
+            this.pageLoading = false;
+        },
+
+        updateNavigation(url) {
+            document.querySelectorAll('nav a').forEach(a => {
+                if (a.getAttribute('href') === url) {
+                    a.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+                    a.classList.add('border-blue-500', 'text-gray-900', 'dark:text-white');
+                } else {
+                    a.classList.remove('border-blue-500', 'text-gray-900', 'dark:text-white');
+                    a.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+                }
+            });
         }
+    }" 
+    x-init="
+        $watch('darkMode', val => localStorage.setItem('darkMode', val));
+        
+        // Handle navigation without page refresh
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('a');
+            if (link && link.href && link.href.startsWith(window.location.origin) && 
+                !link.hasAttribute('download') && 
+                !link.href.includes('/profile') && // Skip SPA navigation for profile pages
+                !link.classList.contains('no-spa')) {
+                e.preventDefault();
+                navigate(link.href);
+            }
+        });
+
+        // Handle browser back/forward
+        window.addEventListener('popstate', () => {
+            navigate(window.location.href);
+        });
+
+        // Handle form submissions
+        document.addEventListener('submit', (e) => {
+            const form = e.target;
+            if (form.method.toLowerCase() === 'get') {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const queryString = new URLSearchParams(formData).toString();
+                const url = form.action + (queryString ? '?' + queryString : '');
+                navigate(url);
+            }
+        });
     "
     :class="{ 'dark': darkMode }">
     <head>
@@ -62,28 +184,17 @@
         
         <style>
             /* Dark mode transition */
+            .dark-transition,
             .dark-transition * {
-                transition: background-color 0.5s ease, border-color 0.5s ease, color 0.5s ease;
+                transition: background-color 0.5s ease,
+                            border-color 0.5s ease,
+                            color 0.5s ease !important;
             }
 
-            /* Page transition */
-            .page-transition-enter {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            .page-transition-enter-active {
-                opacity: 1;
-                transform: translateY(0);
-                transition: opacity 0.3s ease, transform 0.3s ease;
-            }
-            .page-transition-leave {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            .page-transition-leave-active {
-                opacity: 0;
-                transform: translateY(-10px);
-                transition: opacity 0.3s ease, transform 0.3s ease;
+            /* Preserve button colors during transition */
+            .dark-transition button.bg-blue-600 {
+                transition: transform 0.3s ease,
+                            opacity 0.3s ease !important;
             }
 
             /* Loading indicator */
@@ -92,10 +203,27 @@
                 top: 0;
                 left: 0;
                 right: 0;
-                height: 3px;
-                background: #3b82f6;
+                height: 2px;
+                background: linear-gradient(to right, #3b82f6, #60a5fa);
                 transform-origin: 0;
                 z-index: 50;
+                opacity: 0.7;
+            }
+
+            /* Dark mode toggle animation */
+            .theme-toggle-icon {
+                transform-origin: center;
+            }
+
+            /* Page content */
+            .page-content {
+                position: relative;
+                width: 100%;
+            }
+
+            /* Ensure content doesn't overflow */
+            body {
+                overflow-x: hidden;
             }
         </style>
         @stack('styles')
@@ -104,11 +232,11 @@
         <!-- Loading bar -->
         <div x-show="pageLoading" 
              x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="transform scale-x-0"
-             x-transition:enter-end="transform scale-x-100"
-             x-transition:leave="transition ease-in duration-300"
-             x-transition:leave-start="transform scale-x-100"
-             x-transition:leave-end="transform scale-x-0"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
              class="loading-bar"></div>
 
         <div class="min-h-screen">
@@ -156,65 +284,92 @@
 
                         <!-- Right side -->
                         <div class="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
-                            <!-- Dark mode toggle -->
-                            <button 
-                                @click="darkMode = !darkMode"
-                                class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg transition-transform duration-300 hover:scale-110"
-                            >
-                                <!-- Sun icon -->
-                                <svg x-show="!darkMode" 
-                                     x-transition:enter="transition-transform duration-300"
-                                     x-transition:enter-start="rotate-180 scale-0"
-                                     x-transition:enter-end="rotate-0 scale-100"
-                                     x-transition:leave="transition-transform duration-300"
-                                     x-transition:leave-start="rotate-0 scale-100"
-                                     x-transition:leave-end="rotate-180 scale-0"
-                                     class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                                </svg>
-                                <!-- Moon icon -->
-                                <svg x-show="darkMode"
-                                     x-transition:enter="transition-transform duration-300"
-                                     x-transition:enter-start="-rotate-180 scale-0"
-                                     x-transition:enter-end="rotate-0 scale-100"
-                                     x-transition:leave="transition-transform duration-300"
-                                     x-transition:leave-start="rotate-0 scale-100"
-                                     x-transition:leave-end="-rotate-180 scale-0"
-                                     class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                                </svg>
-                            </button>
-
-                            <!-- Profile dropdown -->
-                            <div class="relative" x-data="{ open: false }">
-                                <div>
-                                    <button @click="open = !open" class="flex items-center text-sm font-medium text-gray-500 hover:text-gray-700">
-                                        Test User
-                                        <svg class="ml-1 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
+                            <!-- User dropdown -->
+                            @include('layouts.navigation')
                         </div>
                     </div>
                 </div>
             </nav>
 
             <!-- Page Content -->
-            <main class="py-6"
-                  x-transition:enter="transition ease-out duration-300"
-                  x-transition:enter-start="opacity-0 transform translate-y-4"
-                  x-transition:enter-end="opacity-100 transform translate-y-0"
-                  x-transition:leave="transition ease-in duration-300"
-                  x-transition:leave-start="opacity-100 transform translate-y-0"
-                  x-transition:leave-end="opacity-0 transform -translate-y-4">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <main class="py-6">
+                <div class="page-content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     @yield('content')
                 </div>
             </main>
         </div>
 
         @stack('scripts')
+        <div id="script-container" style="display: none;">
+            @stack('scripts')
+        </div>
+        
+        <script>
+            // Create Alpine.js store for dark mode
+            document.addEventListener('alpine:init', () => {
+                Alpine.store('darkMode', {
+                    dark: localStorage.getItem('darkMode') === 'true',
+                    
+                    toggle() {
+                        this.dark = !this.dark;
+                        localStorage.setItem('darkMode', this.dark);
+                        
+                        if (this.dark) {
+                            document.documentElement.classList.add('dark');
+                            document.getElementById('darkModeText').textContent = 'Light Mode';
+                            document.getElementById('darkModeTextMobile').textContent = 'Light Mode';
+                            document.querySelector('.dark-mode-light')?.classList.add('hidden');
+                            document.querySelector('.dark-mode-dark')?.classList.remove('hidden');
+                        } else {
+                            document.documentElement.classList.remove('dark');
+                            document.getElementById('darkModeText').textContent = 'Dark Mode';
+                            document.getElementById('darkModeTextMobile').textContent = 'Dark Mode';
+                            document.querySelector('.dark-mode-light')?.classList.remove('hidden');
+                            document.querySelector('.dark-mode-dark')?.classList.add('hidden');
+                        }
+                    },
+                    
+                    init() {
+                        if (this.dark) {
+                            document.documentElement.classList.add('dark');
+                        } else {
+                            document.documentElement.classList.remove('dark');
+                        }
+                    }
+                });
+            });
+
+            // Ensure Alpine.js is properly initialized
+            document.addEventListener('DOMContentLoaded', function() {
+                // Initialize Alpine.js if needed
+                if (typeof Alpine !== 'undefined' && !window.alpineInitialized) {
+                    Alpine.start();
+                    window.alpineInitialized = true;
+                    
+                    // Force Alpine.js to reinitialize all components
+                    document.querySelectorAll('[x-data]').forEach(el => {
+                        if (el._x_dataStack) {
+                            el._x_dataStack.forEach(item => {
+                                if (typeof item === 'object') {
+                                    // Ensure all Alpine.js states are properly reset
+                                    Object.keys(item).forEach(key => {
+                                        if (key.startsWith('is') && typeof item[key] === 'boolean') {
+                                            item[key] = false;
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+
+            // Listen for navigation events and reinitialize Alpine components
+            document.addEventListener('turbo:load', function() {
+                if (typeof Alpine !== 'undefined') {
+                    Alpine.start();
+                }
+            });
+        </script>
     </body>
 </html>

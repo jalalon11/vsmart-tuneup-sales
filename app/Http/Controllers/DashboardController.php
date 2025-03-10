@@ -27,11 +27,11 @@ class DashboardController extends Controller
             // Parse selected month
             $selectedMonthDate = Carbon::createFromFormat('Y-m', $selectedMonth);
 
-            // Get today's repairs with error handling
+            // Get pending repairs with error handling
             try {
-                $todayRepairs = Repair::whereDate('created_at', today())->count();
+                $pendingRepairs = Repair::where('status', 'pending')->count();
             } catch (Exception $e) {
-                $todayRepairs = 0;
+                $pendingRepairs = 0;
             }
 
             // Get total customers with error handling
@@ -111,7 +111,7 @@ class DashboardController extends Controller
 
             // Return view with all required data
             return view('dashboard', compact(
-                'todayRepairs',
+                'pendingRepairs',
                 'totalCustomers',
                 'activeServices',
                 'lowStockItems',
@@ -126,7 +126,7 @@ class DashboardController extends Controller
         } catch (Exception $e) {
             // If anything fails, return view with default values
             return view('dashboard', [
-                'todayRepairs' => 0,
+                'pendingRepairs' => 0,
                 'totalCustomers' => 0,
                 'activeServices' => 0,
                 'lowStockItems' => 0,

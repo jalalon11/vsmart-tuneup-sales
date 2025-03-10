@@ -25,7 +25,7 @@
                         required 
                         autofocus 
                         autocomplete="username" 
-                        placeholder="name@company.com" />
+                        placeholder="Enter Email Address" />
                 </div>
                 <x-input-error :messages="$errors->get('email')" class="mt-1" />
             </div>

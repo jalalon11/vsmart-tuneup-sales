@@ -72,6 +72,12 @@ class DeviceController extends Controller
 
         $device->update($validated);
 
+        // Refresh the device to get the latest data
+        $device->refresh();
+        
+        // Load any relationships that might be needed in the UI
+        $device->load('repairs');
+
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
@@ -80,7 +86,7 @@ class DeviceController extends Controller
             ]);
         }
 
-        return Redirect::route('customers.show', $device->customer)
-            ->with('success', 'Device updated successfully.');
+        return redirect()->route('customers.show', $device->customer_id)
+            ->with('success', 'Device updated successfully');
     }
 } 

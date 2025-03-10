@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Redirect;
 
 class ServiceController extends Controller
 {
-    public function index(): View
+    public function index(): mixed
     {
         $query = Service::query()
             ->with('category');
@@ -28,10 +28,15 @@ class ServiceController extends Controller
             });
         }
 
-        $services = $query->orderBy('name')
-            ->paginate(10)
-            ->withQueryString();
-
+        $services = $query->orderBy('name');
+            
+        // Return JSON if requested
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json($services->get());
+        }
+        
+        // Otherwise return the paginated view
+        $services = $services->paginate(10)->withQueryString();
         return ViewFacade::make('services.index', compact('services'));
     }
 

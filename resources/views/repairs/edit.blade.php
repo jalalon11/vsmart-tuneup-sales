@@ -166,26 +166,66 @@
                         <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
                         <select name="status" id="status" required
                             class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option value="pending" {{ $repair->status == 'pending' ? 'selected' : '' }}>Pending</option>
-                            <option value="completed" {{ $repair->status == 'completed' ? 'selected' : '' }}>Completed</option>
-                            <option value="cancelled" {{ $repair->status == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                            <option value="pending" {{ $repair->status === 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="in_progress" {{ $repair->status === 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                            <option value="completed" {{ $repair->status === 'completed' ? 'selected' : '' }}>Completed</option>
+                            <option value="cancelled" {{ $repair->status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                        </select>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div>
+                        <label for="payment_method" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Payment Method</label>
+                        <select name="payment_method" id="payment_method" required
+                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="cash" {{ $repair->payment_method === 'cash' ? 'selected' : '' }}>Cash</option>
+                            <option value="gcash" {{ $repair->payment_method === 'gcash' ? 'selected' : '' }}>GCash</option>
+                            <option value="bank_transfer" {{ $repair->payment_method === 'bank_transfer' ? 'selected' : '' }}>Bank Transfer</option>
+                            <option value="credit_card" {{ $repair->payment_method === 'credit_card' ? 'selected' : '' }}>Credit Card</option>
                         </select>
                     </div>
 
                     <!-- Start Date -->
                     <div>
                         <label for="started_at" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
-                        <input type="date" name="started_at" id="started_at"
-                            value="{{ $repair->started_at ? $repair->started_at->format('Y-m-d') : '' }}"
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <!-- Store exact PHP datetime string to preserve format -->
+                        <input type="hidden" name="started_at" id="started_at_hidden"
+                               value="{{ $repair->started_at ? $repair->started_at->format('Y-m-d H:i:s') : '' }}">
+                        
+                        <!-- Visible readonly field to show the correct formatted date -->
+                        <input type="datetime-local" id="started_at" 
+                               value="{{ $repair->started_at ? $repair->started_at->timezone('Asia/Manila')->format('Y-m-d\TH:i') : '' }}"
+                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                               {{ $repair->started_at ? 'readonly' : '' }}>
+                    </div>
+
+                    <!-- Duration -->
+                    <div>
+                        <label for="duration" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Duration</label>
+                        <div class="mt-1 flex">
+                            <input type="text" id="duration" readonly
+                                class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-100 dark:bg-gray-800">
+                            <input type="hidden" name="duration_seconds" id="duration_seconds" value="0">
+                        </div>
+                        <!-- Live timer indicator -->
+                        <div id="timer-indicator" class="hidden mt-1 text-sm text-green-500 flex items-center">
+                            <span class="mr-1">●</span> <!-- Pulsing dot -->
+                            <span>Timer active</span>
+                        </div>
                     </div>
 
                     <!-- Completion Date -->
                     <div>
                         <label for="completed_at" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Completion Date</label>
-                        <input type="date" name="completed_at" id="completed_at"
-                            value="{{ $repair->completed_at ? $repair->completed_at->format('Y-m-d') : '' }}"
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <!-- Store exact PHP datetime string to preserve format -->
+                        <input type="hidden" name="completed_at" id="completed_at_hidden" 
+                               value="{{ $repair->completed_at ? $repair->completed_at->format('Y-m-d H:i:s') : '' }}">
+                        
+                        <!-- Visible readonly field to show the correct formatted date -->
+                        <input type="datetime-local" id="completed_at"
+                               value="{{ $repair->completed_at ? $repair->completed_at->timezone('Asia/Manila')->format('Y-m-d\TH:i') : '' }}"
+                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                               {{ $repair->completed_at ? 'readonly' : '' }}>
                     </div>
                 </div>
             </div>
@@ -215,6 +255,285 @@
 <script>
 let itemIndex = {{ count($repair->items) }};
 
+// Timer functionality with continuous duration counter
+(function initializeTimer() {
+    // Get DOM elements
+    const durationField = document.getElementById('duration');
+    const durationSecondsField = document.getElementById('duration_seconds');
+    const statusSelect = document.getElementById('status');
+    const startDateField = document.getElementById('started_at');
+    const startDateHidden = document.getElementById('started_at_hidden');
+    const completedDateField = document.getElementById('completed_at');
+    const completedDateHidden = document.getElementById('completed_at_hidden');
+    const timerIndicator = document.getElementById('timer-indicator');
+    
+    // Store PHP server timestamps in milliseconds
+    let startTime = {{ $repair->started_at ? 
+        $repair->started_at->timestamp * 1000 : 
+        "null" }};
+    
+    let completedTime = {{ $repair->completed_at ? 
+        $repair->completed_at->timestamp * 1000 : 
+        "null" }};
+    
+    // Flag to track if timer is running
+    let isTimerRunning = {{ $repair->status == 'in_progress' ? 'true' : 'false' }};
+    let timerInterval = null;
+    
+    console.log("TIMER INIT - Status:", "{{ $repair->status }}", "StartTime:", startTime);
+    
+    // Add animation for the timer indicator
+    function pulseAnimation() {
+        const dot = timerIndicator.querySelector('span');
+        let opacity = 1;
+        let increasing = false;
+        
+        setInterval(() => {
+            if (opacity <= 0.3) increasing = true;
+            if (opacity >= 1) increasing = false;
+            
+            opacity = increasing ? opacity + 0.1 : opacity - 0.1;
+            dot.style.opacity = opacity;
+        }, 200);
+    }
+    
+    // Format milliseconds as human-readable time
+    function formatDuration(milliseconds) {
+        const totalSeconds = Math.floor(milliseconds / 1000);
+        const seconds = totalSeconds % 60;
+        const minutes = Math.floor(totalSeconds / 60) % 60;
+        const hours = Math.floor(totalSeconds / 3600) % 24;
+        const days = Math.floor(totalSeconds / 86400);
+        
+        let result = '';
+        if (days > 0) result += days + (days === 1 ? ' day ' : ' days ');
+        if (hours > 0) result += hours + (hours === 1 ? ' hour ' : ' hours ');
+        if (minutes > 0) result += minutes + (minutes === 1 ? ' minute ' : ' minutes ');
+        result += seconds + (seconds === 1 ? ' second' : ' seconds');
+        
+        return result;
+    }
+    
+    // Update duration display with real-time counting
+    function updateDuration() {
+        if (!startTime) {
+            durationField.value = "Not started";
+            return;
+        }
+        
+        let now = new Date().getTime();
+        let endTime = isTimerRunning ? now : (completedTime || now);
+        let elapsed = endTime - startTime;
+        
+        // Ensure we don't show negative time
+        if (elapsed < 0) elapsed = 0;
+        
+        // Update the duration field with the formatted time
+        durationField.value = formatDuration(elapsed);
+        durationSecondsField.value = Math.floor(elapsed / 1000);
+        
+        // Add visual cue by briefly changing the border color
+        if (isTimerRunning) {
+            durationField.style.borderColor = "#10B981"; // Green
+            setTimeout(() => {
+                durationField.style.borderColor = ""; // Reset to default
+            }, 500);
+        }
+    }
+    
+    // Start the continuously updating timer
+    function startTimer() {
+        console.log("START TIMER called");
+        // Set the flag to indicate timer is running
+        isTimerRunning = true;
+        
+        // Show the timer indicator
+        timerIndicator.classList.remove('hidden');
+        
+        // If no start time (new repair), set it to now
+        if (!startTime) {
+            // Get current time
+            const now = new Date();
+            startTime = now.getTime();
+            
+            // Format for datetime-local input
+            const formattedDate = formatDateForInput(now);
+            startDateField.value = formattedDate;
+            
+            // Store the timestamp in the hidden field for PHP
+            startDateHidden.value = now.toISOString().slice(0, 19).replace('T', ' ');
+        }
+        
+        // Create interval for continuous updates (every second)
+        clearInterval(timerInterval);
+        timerInterval = setInterval(updateDuration, 1000);
+        updateDuration(); // Initial update
+        
+        // Start the pulse animation for the indicator
+        pulseAnimation();
+    }
+    
+    // Stop the timer
+    function stopTimer() {
+        console.log("STOP TIMER called");
+        // Set the flag to indicate timer is stopped
+        isTimerRunning = false;
+        
+        // Hide the timer indicator
+        timerIndicator.classList.add('hidden');
+        
+        // If status is completed, record completion time
+        if (statusSelect.value === 'completed' && !completedTime) {
+            // Get current time
+            const now = new Date();
+            completedTime = now.getTime();
+            
+            // Format for datetime-local input
+            const formattedDate = formatDateForInput(now);
+            completedDateField.value = formattedDate;
+            
+            // Store the ISO string in the hidden field for PHP
+            completedDateHidden.value = now.toISOString().slice(0, 19).replace('T', ' ');
+        }
+        
+        // Continue showing the final duration
+        clearInterval(timerInterval);
+        updateDuration();
+        
+        // Reset border color
+        durationField.style.borderColor = "";
+    }
+    
+    // Format a date for datetime-local input (YYYY-MM-DDTHH:MM)
+    function formatDateForInput(date) {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+    
+    // Handle status changes
+    statusSelect.addEventListener('change', function() {
+        const currentStatus = this.value;
+        
+        if (currentStatus === 'in_progress') {
+            // When changed to in progress, start the timer
+            startTimer();
+            
+            // Make completion date field readonly
+            if (completedDateField) {
+                completedDateField.value = '';
+                completedDateField.readOnly = true;
+                if (completedDateHidden) {
+                    completedDateHidden.value = '';
+                }
+            }
+        } else if (currentStatus === 'completed') {
+            // When status is changed to completed, stop the timer
+            stopTimer();
+            
+            // If no completion date set, set it to now
+            if (completedDateField && !completedDateField.value) {
+                const now = new Date();
+                const formattedDate = formatDateForInput(now);
+                completedDateField.value = formattedDate;
+                completedDateField.readOnly = true;
+                
+                if (completedDateHidden) {
+                    completedDateHidden.value = now.toISOString().slice(0, 19).replace('T', ' ');
+                }
+            }
+        } else {
+            // For other statuses (pending, cancelled), stop timer
+            stopTimer();
+            
+            if (currentStatus === 'pending') {
+                // For pending, clear the completed date
+                if (completedDateField) {
+                    completedDateField.value = '';
+                    completedDateField.readOnly = false;
+                }
+                if (completedDateHidden) {
+                    completedDateHidden.value = '';
+                }
+            }
+        }
+    });
+    
+    // Initialize based on current status
+    if (statusSelect) {
+        // Watch for status changes
+        statusSelect.addEventListener('change', function() {
+            const currentStatus = this.value;
+            
+            if (currentStatus === 'in_progress') {
+                // When changed to in progress, start the timer
+                startTimer();
+                
+                // Make completion date field readonly
+                if (completedDateField) {
+                    completedDateField.value = '';
+                    completedDateField.readOnly = true;
+                    if (completedDateHidden) {
+                        completedDateHidden.value = '';
+                    }
+                }
+            } else if (currentStatus === 'completed') {
+                // When status is changed to completed, stop the timer
+                stopTimer();
+                
+                // If no completion date set, set it to now
+                if (completedDateField && !completedDateField.value) {
+                    const now = new Date();
+                    const formattedDate = formatDateForInput(now);
+                    completedDateField.value = formattedDate;
+                    completedDateField.readOnly = true;
+                    
+                    if (completedDateHidden) {
+                        completedDateHidden.value = now.toISOString().slice(0, 19).replace('T', ' ');
+                    }
+                }
+            } else {
+                // For other statuses (pending, cancelled), stop timer
+                stopTimer();
+                
+                if (currentStatus === 'pending') {
+                    // For pending, clear the completed date
+                    if (completedDateField) {
+                        completedDateField.value = '';
+                        completedDateField.readOnly = false;
+                    }
+                    if (completedDateHidden) {
+                        completedDateHidden.value = '';
+                    }
+                }
+            }
+        });
+        
+        // Initialize the timer based on the current status
+        if (statusSelect.value === 'in_progress') {
+            startTimer();
+        } else {
+            // Just update the duration display once
+            updateDuration();
+        }
+    }
+    
+    // Make the timer indicator visible if the timer should be running
+    if (isTimerRunning) {
+        timerIndicator.classList.remove('hidden');
+        pulseAnimation();
+    }
+    
+    // Force an initial update
+    updateDuration();
+    console.log("Timer initialization complete. Status:", statusSelect.value, "Running:", isTimerRunning);
+})(); // Self-executing function to run immediately
+
+// Other existing functions
 function addRepairItem() {
     const template = document.getElementById('repair-item-template');
     const container = document.getElementById('repair-items');
@@ -265,4 +584,4 @@ document.querySelectorAll('.service-select').forEach(select => {
 });
 </script>
 @endpush
-@endsection 
+@endsection

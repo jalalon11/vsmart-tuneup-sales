@@ -13,6 +13,7 @@ return new class extends Migration
             $table->string('status')->default('pending');
             $table->timestamp('started_at')->nullable();
             $table->timestamp('completed_at')->nullable();
+            $table->string('payment_method')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
         });

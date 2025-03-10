@@ -46,7 +46,10 @@ class CustomerController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return ViewFacade::make('customers.index', compact('customers'));
+        // Add services for repair modal
+        $services = \App\Models\Service::with('category')->orderBy('name')->get();
+
+        return ViewFacade::make('customers.index', compact('customers', 'services'));
     }
 
     public function create(): View

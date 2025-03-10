@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Repair;
-use App\Models\Device;
-use App\Models\Service;
 use App\Models\Customer;
+use App\Models\Device;
+use App\Models\Repair;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Redirect;
@@ -19,19 +19,45 @@ class RepairController extends Controller
     public function index(Request $request)
     {
         $query = Repair::with(['items.device.customer', 'items.service']);
+        
+        // Handle customer_id and device_id parameters coming from device links
+        $customerId = null;
+        $deviceId = null;
+        
+        if ($request->has('customer_id') && $request->has('device_id')) {
+            $customerId = $request->input('customer_id');
+            $deviceId = $request->input('device_id');
+            
+            // Get customer and device information to display in the info message
+            $customer = Customer::find($customerId);
+            $device = Device::find($deviceId);
+            
+            if ($customer && $device) {
+                // Pass info message
+                session()->flash('info', "Viewing repairs for {$customer->name}'s {$device->brand} {$device->model}");
+                
+                // Filter repairs to show only those for this customer and device
+                $query->whereHas('items', function($q) use ($deviceId) {
+                    $q->where('device_id', $deviceId);
+                });
+            }
+        }
 
         // Handle search
         if ($request->has('search')) {
             $searchTerm = $request->search;
-            $query->whereHas('items.device.customer', function($q) use ($searchTerm) {
-                $q->where('name', 'like', "%{$searchTerm}%");
-            })
-            ->orWhereHas('items.device', function($q) use ($searchTerm) {
-                $q->where('brand', 'like', "%{$searchTerm}%")
-                  ->orWhere('model', 'like', "%{$searchTerm}%");
-            })
-            ->orWhereHas('items.service', function($q) use ($searchTerm) {
-                $q->where('name', 'like', "%{$searchTerm}%");
+            $query->where(function($query) use ($searchTerm) {
+                $query->whereHas('items.device.customer', function($q) use ($searchTerm) {
+                    $q->where('name', 'like', "%{$searchTerm}%");
+                })
+                ->orWhereHas('items.device', function($q) use ($searchTerm) {
+                    $q->where('brand', 'like', "%{$searchTerm}%")
+                      ->orWhere('model', 'like', "%{$searchTerm}%");
+                })
+                ->orWhereHas('items.service', function($q) use ($searchTerm) {
+                    $q->where('name', 'like', "%{$searchTerm}%");
+                })
+                ->orWhere('status', 'like', "%{$searchTerm}%");
             });
         }
 
@@ -63,8 +89,20 @@ class RepairController extends Controller
             }
         }
 
-        $repairs = $query->paginate(10)->withQueryString();
-        return View::make('repairs.index', compact('repairs', 'sortField', 'sortDirection'));
+        $perPage = $request->get('perPage', 10);
+        $repairs = $query->paginate($perPage)->withQueryString();
+        $customers = Customer::orderBy('name')->get();
+        $services = Service::with('category')->orderBy('name')->get();
+        
+        return View::make('repairs.index', compact(
+            'repairs', 
+            'sortField', 
+            'sortDirection', 
+            'customers', 
+            'services',
+            'customerId',
+            'deviceId'
+        ));
     }
 
     /**
@@ -72,10 +110,8 @@ class RepairController extends Controller
      */
     public function create()
     {
-        $customers = Customer::orderBy('name')->get();
-        $services = Service::orderBy('name')->get();
-
-        return view('repairs.create', compact('customers', 'services'));
+        // Redirect to repairs index page since the create view has been removed
+        return redirect()->route('repairs.index')->with('info', 'Repairs can only be created from the device list in the Customer Profile');
     }
 
     /**
@@ -83,47 +119,52 @@ class RepairController extends Controller
      */
     public function store(Request $request)
     {
+        // Validate the basic repair data
         $validated = $request->validate([
             'customer_id' => 'required|exists:customers,id',
             'items' => 'required|array|min:1',
             'items.*.device_id' => 'required|exists:devices,id',
             'items.*.service_id' => 'required|exists:services,id',
             'items.*.cost' => 'required|numeric|min:0',
-            'items.*.notes' => 'nullable|string',
-            'status' => 'required|in:pending,completed,cancelled',
-            'started_at' => 'nullable|date',
-            'completed_at' => 'nullable|date',
-            'notes' => 'nullable|string',
+            'items.*.status' => 'required|in:pending,in_progress,completed,cancelled',
+            'items.*.notes' => 'nullable|string|max:500',
+            'notes' => 'nullable|string|max:1000',
+            'payment_method' => 'required|in:cash,gcash,bank_transfer,credit_card',
         ]);
-
-        // Verify all devices belong to the selected customer
-        $customer = Customer::findOrFail($validated['customer_id']);
-        $customerDeviceIds = $customer->devices->pluck('id')->toArray();
         
-        foreach ($validated['items'] as $item) {
-            if (!in_array($item['device_id'], $customerDeviceIds)) {
-                return back()->withInput()->withErrors(['device_id' => 'One or more devices do not belong to the selected customer.']);
-            }
-        }
-
+        // Create the repair with status
         $repair = Repair::create([
-            'status' => $validated['status'],
-            'started_at' => $validated['started_at'],
-            'completed_at' => $validated['completed_at'],
-            'notes' => $validated['notes'],
+            'status' => 'pending', // Set initial status
+            'notes' => $request->notes,
+            'started_at' => now(), // Set started_at to current time
+            'payment_method' => $request->payment_method,
         ]);
-
-        foreach ($validated['items'] as $item) {
+        
+        // Create repair items
+        foreach ($request->items as $itemData) {
             $repair->items()->create([
-                'device_id' => $item['device_id'],
-                'service_id' => $item['service_id'],
-                'cost' => $item['cost'],
-                'notes' => $item['notes'],
+                'device_id' => $itemData['device_id'],
+                'service_id' => $itemData['service_id'],
+                'cost' => $itemData['cost'],
+                'notes' => $itemData['notes'] ?? null,
             ]);
         }
-
-        return redirect()->route('repairs.show', $repair)
-            ->with('success', 'Repair has been created successfully.');
+        
+        // If the request is AJAX, return JSON
+        if ($request->ajax() || $request->wantsJson()) {
+            // Load the repair with its relationships for the JSON response
+            $repair->load(['items.device.customer', 'items.service']);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Repair created successfully!',
+                'repair' => $repair
+            ]);
+        }
+        
+        // Normal redirect response
+        return redirect()->route('repairs.index')
+            ->with('success', 'Repair created successfully!');
     }
 
     /**
@@ -157,16 +198,24 @@ class RepairController extends Controller
             'items.*.service_id' => ['required', 'exists:services,id'],
             'items.*.cost' => ['required', 'numeric', 'min:0'],
             'items.*.notes' => ['nullable', 'string'],
-            'status' => ['required', 'in:pending,completed,cancelled'],
+            'status' => ['required', 'in:pending,in_progress,completed,cancelled'],
             'notes' => ['nullable', 'string'],
             'started_at' => ['nullable', 'date'],
             'completed_at' => ['nullable', 'date', 'after_or_equal:started_at'],
+            'payment_method' => ['required', 'in:cash,gcash,bank_transfer,credit_card'],
         ]);
 
         $oldStatus = $repair->status;
 
+        // Handle different status transitions
+        if ($validated['status'] === 'in_progress' && $oldStatus !== 'in_progress') {
+            // If changing to in_progress, set started_at to now if it's not already set
+            if (empty($validated['started_at'])) {
+                $validated['started_at'] = now();
+            }
+        }
         // If status is being changed to completed and completed_at is not set
-        if ($validated['status'] === 'completed' && 
+        elseif ($validated['status'] === 'completed' && 
             $oldStatus !== 'completed' && 
             empty($validated['completed_at'])) {
             $validated['completed_at'] = now();
@@ -178,6 +227,7 @@ class RepairController extends Controller
             'notes' => $validated['notes'],
             'started_at' => $validated['started_at'],
             'completed_at' => $validated['completed_at'],
+            'payment_method' => $validated['payment_method'],
         ]);
 
         // Delete existing items and create new ones

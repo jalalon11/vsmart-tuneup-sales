@@ -18,6 +18,7 @@ class Repair extends Model
         'notes',
         'started_at',
         'completed_at',
+        'payment_method',
     ];
 
     protected $casts = [

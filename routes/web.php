@@ -9,6 +9,8 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\UserProfileController;
+use App\Http\Controllers\Auth\PasswordController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -26,6 +28,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // User Profile routes - new implementation
+    Route::get('/user/profile', [UserProfileController::class, 'show'])->name('user.profile');
+    Route::patch('/user/profile', [UserProfileController::class, 'update'])->name('user.profile.update');
+    Route::put('/user/password', [PasswordController::class, 'update'])->name('user.password.update');
 
     // Resource routes
     Route::resource('categories', CategoryController::class);
@@ -48,6 +55,11 @@ Route::middleware('auth')->group(function () {
     // Add device to customer
     Route::post('/customers/{customer}/devices', [CustomerController::class, 'addDevice'])
         ->name('customers.devices.store')
+        ->middleware('auth');
+        
+    // API route for services
+    Route::get('/api/services', [ServiceController::class, 'index'])
+        ->name('api.services')
         ->middleware('auth');
 });
 

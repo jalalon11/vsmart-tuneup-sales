@@ -1,6 +1,6 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\Api\CustomerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,7 +13,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 // Customer devices endpoint
-Route::middleware('auth')->group(function () {
-    Route::get('/customers/{customer}/devices', [CustomerController::class, 'devices'])
-        ->name('api.customer.devices');
-}); 
+Route::get('/customers/{customerId}/devices', [CustomerController::class, 'devices'])
+    ->name('api.customer.devices');
