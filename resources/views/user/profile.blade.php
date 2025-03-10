@@ -22,11 +22,11 @@
                     <div class="mt-2 flex items-center">
                         @if(auth()->user()->is_admin)
                         <div class="px-3 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 text-xs font-medium">
-                            Administrator
+                            Super Administrator
                         </div>
                         @else
                         <div class="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-xs font-medium">
-                            Staff
+                            Administrator
                         </div>
                         @endif
                         <span class="mx-2 text-gray-400">•</span>

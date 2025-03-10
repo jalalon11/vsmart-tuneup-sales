@@ -172,7 +172,10 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        <title>VSMART SMS</title>
+
+        <!-- Favicon -->
+        <link rel="icon" href="{{ asset('img/LogoClear.png') }}" type="image/png">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -248,7 +251,7 @@
                         <div class="flex">
                             <!-- Logo -->
                             <div class="flex-shrink-0 flex items-center">
-                                <a href="{{ route('dashboard') }}" class="text-xl font-bold text-blue-600 dark:text-blue-400">
+                                <a href="{{ route('dashboard') }}" class="text-xl font-bold text-red-600 dark:text-red-400">
                                     VS
                                 </a>
                             </div>
