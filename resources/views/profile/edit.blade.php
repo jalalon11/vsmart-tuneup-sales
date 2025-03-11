@@ -25,7 +25,7 @@
                         <p class="text-gray-500 dark:text-gray-400">{{ auth()->user()->email }}</p>
                         <div class="mt-2 flex items-center">
                             <div class="px-3 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 text-xs font-medium">
-                                Administrator
+                                {{ auth()->user()->position_display }}
                             </div>
                             <span class="mx-2 text-gray-400">•</span>
                             <span class="text-sm text-gray-500 dark:text-gray-400">
@@ -78,6 +78,45 @@
                                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                     @enderror
                                 </div>
+
+                                <div>
+                                    <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone Number</label>
+                                    <input type="tel" id="phone" name="phone" value="{{ auth()->user()->phone }}"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300" />
+                                    @error('phone')
+                                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div>
+                                    <label for="position" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Position</label>
+                                    <select id="position" name="position" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300">
+                                        <option value="admin" {{ auth()->user()->position === 'admin' ? 'selected' : '' }}>Administrator</option>
+                                        <option value="manager" {{ auth()->user()->position === 'manager' ? 'selected' : '' }}>Manager</option>
+                                        <option value="technician" {{ auth()->user()->position === 'technician' ? 'selected' : '' }}>Technician</option>
+                                        <option value="sales" {{ auth()->user()->position === 'sales' ? 'selected' : '' }}>Sales Representative</option>
+                                    </select>
+                                    @error('position')
+                                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Address</label>
+                                <textarea id="address" name="address" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300">{{ auth()->user()->address }}</textarea>
+                                @error('address')
+                                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label for="bio" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Bio</label>
+                                <textarea id="bio" name="bio" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300">{{ auth()->user()->bio }}</textarea>
+                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Write a few sentences about yourself.</p>
+                                @error('bio')
+                                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
                             </div>
                             
                             <div class="flex items-center justify-end mt-6">

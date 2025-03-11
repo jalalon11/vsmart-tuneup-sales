@@ -1,3 +1,50 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Table Styling */
+.print-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+}
+
+.print-table th,
+.print-table td {
+    padding: 0.75rem;
+    border: 1px solid #e2e8f0;
+}
+
+/* Column Alignments */
+.print-table th {
+    background-color: #f8fafc;
+    font-weight: 600;
+}
+
+/* Text alignment classes */
+.print-table td:first-child {
+    text-align: left; /* Service/Customer name */
+}
+
+.print-table td:nth-child(2) {
+    text-align: right; /* Count/Repairs */
+}
+
+.print-table td:nth-child(3) {
+    text-align: right; /* Total Sales/Spent */
+}
+
+.print-table td:nth-child(4) {
+    text-align: right; /* Average */
+}
+
+.print-table td:nth-child(5) {
+    text-align: right; /* Percentage */
+}
+
+/* Add some spacing for currency and numbers */
+.print-table td:nth-child(3),
+.print-table td:nth-child(4) {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+}

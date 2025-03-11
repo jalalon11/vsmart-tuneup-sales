@@ -191,237 +191,219 @@
 </div>
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<!-- Chart.js library with explicit loading check -->
 <script>
-    // Function to initialize or reinitialize charts
-    function initializeCharts() {
-        const isDark = document.documentElement.classList.contains('dark');
-        const textColor = isDark ? '#9ca3af' : '#4b5563';
-        const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
-
-        // Destroy existing charts if they exist
-        const existingServiceChart = Chart.getChart('serviceChart');
-        if (existingServiceChart) {
-            existingServiceChart.destroy();
-        }
-        const existingCustomerChart = Chart.getChart('customerChart');
-        if (existingCustomerChart) {
-            existingCustomerChart.destroy();
-        }
-
-        // Service Distribution Chart
-        const serviceCtx = document.getElementById('serviceChart')?.getContext('2d');
-        if (serviceCtx) {
-            const serviceData = @json($serviceBreakdown);
-            new Chart(serviceCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(serviceData),
-                    datasets: [{
-                        data: Object.values(serviceData).map(item => item.total),
-                        backgroundColor: [
-                            '#3B82F6', '#10B981', '#8B5CF6', '#F59E0B',
-                            '#EF4444', '#6366F1', '#EC4899', '#14B8A6'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: {
-                                color: textColor
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const value = context.raw;
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = ((value / total) * 100).toFixed(1);
-                                    return `₱${value.toLocaleString()} (${percentage}%)`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Customer Revenue Chart
-        const customerCtx = document.getElementById('customerChart')?.getContext('2d');
-        if (customerCtx) {
-            const customerData = @json($customerBreakdown);
-            new Chart(customerCtx, {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(customerData),
-                    datasets: [{
-                        label: 'Revenue',
-                        data: Object.values(customerData).map(item => item.total),
-                        backgroundColor: isDark ? '#60A5FA' : '#3B82F6'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: gridColor
-                            },
-                            ticks: {
-                                color: textColor,
-                                callback: value => '₱' + value.toLocaleString()
-                            }
-                        },
-                        x: {
-                            grid: {
-                                color: gridColor
-                            },
-                            ticks: {
-                                color: textColor
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return '₱' + context.raw.toLocaleString();
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-    }
-
-    // Initialize charts on page load
-    document.addEventListener('DOMContentLoaded', initializeCharts);
-
-    // Initialize charts when navigating using Laravel's navigation
-    document.addEventListener('turbo:load', initializeCharts);
-    document.addEventListener('turbolinks:load', initializeCharts);
-    
-    // Handle dark mode changes
-    if (window.Alpine) {
-        Alpine.effect(() => {
-            const isDark = document.documentElement.classList.contains('dark');
+// Check if Chart.js is already loaded to avoid conflicts
+if (typeof Chart === 'undefined') {
+    // Create a script element to load Chart.js
+    var chartScript = document.createElement('script');
+    chartScript.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+    chartScript.onload = function() {
+        console.log('Chart.js loaded successfully');
+        // Initialize charts once loaded
+        if (typeof initializeCharts === 'function') {
             initializeCharts();
-        });
-    }
+        }
+    };
+    document.head.appendChild(chartScript);
+} else {
+    console.log('Chart.js already loaded');
+}
+</script>
 
-    // Export to Excel function
-    function exportToExcel() {
-        // Get the data from PHP variables
-        const serviceData = @json($serviceBreakdown);
-        const customerData = @json($customerBreakdown);
-        const totalSales = @json($totalSales);
-        const totalRepairs = @json($totalRepairs);
-        const periodLabel = @json($periodLabel);
-        const currentTime = @json(now()->timezone('Asia/Manila')->format('F d, Y h:i A'));
-        
-        // Create a new workbook
-        const workbook = XLSX.utils.book_new();
-        
-        // Prepare the data array
-        let data = [];
-        
-        // Add header section
-        data.push(['VSMART TUNE UP']);
-        data.push(['Sales Report - ' + periodLabel]);
-        data.push(['Generated: ' + currentTime + ' PHT']);
-        data.push([]);  // Empty row
-        
-        // Add summary section
-        data.push(['SUMMARY']);
-        data.push(['Total Sales:', '₱' + totalSales.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})]);
-        data.push(['Total Repairs:', totalRepairs]);
-        data.push(['Average per Repair:', '₱' + (totalRepairs > 0 ? (totalSales / totalRepairs).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00')]);
-        data.push([]);  // Empty row
-        
-        // Add top performers section
-        data.push(['TOP PERFORMERS']);
-        data.push(['Top Service:', Object.keys(serviceData)[0] || 'N/A']);
-        data.push(['Top Customer:', Object.keys(customerData)[0] || 'N/A']);
-        data.push([]);  // Empty row
-        
-        // Add services breakdown section
-        data.push(['SERVICES BREAKDOWN']);
-        data.push(['Service', 'Count', 'Total Sales', 'Average Sale', '% of Total']);
-        
-        // Add service rows
-        Object.entries(serviceData).forEach(([service, details]) => {
-            data.push([
-                service,
-                details.count,
-                '₱' + details.total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}),
-                '₱' + (details.count > 0 ? (details.total / details.count).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'),
-                ((details.total / totalSales) * 100).toFixed(1) + '%'
-            ]);
-        });
-        
-        data.push([]);  // Empty row
-        
-        // Add customers breakdown section
-        data.push(['CUSTOMERS BREAKDOWN']);
-        data.push(['Customer', 'Repairs', 'Total Spent', 'Average Repair', '% of Total']);
-        
-        // Add customer rows
-        Object.entries(customerData).forEach(([customer, details]) => {
-            data.push([
-                customer,
-                details.count,
-                '₱' + details.total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}),
-                '₱' + (details.count > 0 ? (details.total / details.count).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'),
-                ((details.total / totalSales) * 100).toFixed(1) + '%'
-            ]);
-        });
-        
-        data.push([]);  // Empty row
-        
-        // Add footer
-        data.push(['Report generated by VSmart SMS']);
-        data.push([@json(now()->timezone('Asia/Manila')->format('Y-m-d H:i:s')) + ' PHT']);
-        
-        // Create worksheet
-        const ws = XLSX.utils.aoa_to_sheet(data);
-        
-        // Set column widths
-        ws['!cols'] = [
-            { wch: 35 }, // A
-            { wch: 15 }, // B
-            { wch: 15 }, // C
-            { wch: 15 }, // D
-            { wch: 12 }  // E
-        ];
-        
-        // Merge cells for header
-        ws['!merges'] = [
-            { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }, // A1:E1
-            { s: { r: 1, c: 0 }, e: { r: 1, c: 4 } }, // A2:E2
-            { s: { r: 2, c: 0 }, e: { r: 2, c: 4 } }, // A3:E3
-        ];
-        
-        // Add the worksheet to workbook
-        XLSX.utils.book_append_sheet(workbook, ws, 'Sales Report');
-        
-        // Generate filename
-        const date = new Date();
-        const dateStr = date.toLocaleDateString('en-PH').replace(/\//g, '-');
-        const timeStr = date.toLocaleTimeString('en-PH').replace(/:/g, '-').split(' ')[0];
-        const fileName = `VSmart_Sales_Report_${periodLabel}_${dateStr}_${timeStr}_PHT.xlsx`;
-        
-        // Save the file
-        XLSX.writeFile(workbook, fileName);
+<!-- XLSX library -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<!-- Main report functionality -->
+<script>
+// Make sure the print layout is hidden on load
+document.addEventListener('DOMContentLoaded', function() {
+    hideReportPrintLayout();
+});
+
+// Also when coming back via browser navigation
+window.addEventListener('pageshow', function(event) {
+    hideReportPrintLayout();
+});
+
+// Function to hide the print layout
+function hideReportPrintLayout() {
+    var printElements = document.getElementsByClassName('print-only');
+    for (var i = 0; i < printElements.length; i++) {
+        printElements[i].style.display = 'none';
     }
+}
+
+// Original print function override
+var originalPrint = window.print;
+window.print = function() {
+    // Show the print layout
+    var printElements = document.getElementsByClassName('print-only');
+    for (var i = 0; i < printElements.length; i++) {
+        printElements[i].style.display = 'block';
+    }
+    
+    // Call the original print function
+    originalPrint();
+    
+    // Hide the print layout again after printing
+    setTimeout(hideReportPrintLayout, 500);
+};
+
+// Excel export function
+function exportToExcel() {
+    var workbook = XLSX.utils.book_new();
+    var data = [];
+    
+    // Header
+    data.push(['VSMART TUNE UP - SALES REPORT']);
+    data.push(['{{ $periodLabel }}']);
+    data.push(['Generated: ' + new Date().toLocaleString() + ' PHT']);
+    data.push([]);
+    
+    // Summary
+    data.push(['SUMMARY']);
+    data.push(['Total Sales:', '₱{{ number_format($totalSales, 2) }}']);
+    data.push(['Total Repairs:', '{{ $totalRepairs }}']);
+    data.push(['Average per Repair:', '₱{{ number_format($totalRepairs > 0 ? $totalSales / $totalRepairs : 0, 2) }}']);
+    data.push([]);
+    
+    // Services breakdown
+    data.push(['SERVICES BREAKDOWN']);
+    data.push(['Service', 'Count', 'Total Sales', 'Average Sale', '% of Total']);
+    
+    @foreach($serviceBreakdown as $service => $data)
+    data.push([
+        '{{ $service }}',
+        {{ $data['count'] }},
+        '₱{{ number_format($data['total'], 2) }}',
+        '₱{{ number_format($data['count'] > 0 ? $data['total'] / $data['count'] : 0, 2) }}',
+        '{{ number_format(($data['total'] / $totalSales) * 100, 1) }}%'
+    ]);
+    @endforeach
+    
+    // Create and save the workbook
+    var ws = XLSX.utils.aoa_to_sheet(data);
+    XLSX.utils.book_append_sheet(workbook, ws, 'Sales Report');
+    
+    var fileName = 'VSmart_Sales_Report_{{ $periodLabel }}_' + 
+        new Date().toISOString().replace(/[:.]/g, '-') + '.xlsx';
+    XLSX.writeFile(workbook, fileName);
+}
+</script>
+
+<!-- Chart initialization script -->
+<script>
+// Initialize charts function (called after Chart.js is loaded)
+function initializeCharts() {
+    console.log('Initializing charts...');
+    
+    // Find the chart canvases
+    var serviceChartCanvas = document.getElementById('serviceChart');
+    var customerChartCanvas = document.getElementById('customerChart');
+    
+    // Check if canvases exist before proceeding
+    if (!serviceChartCanvas || !customerChartCanvas) {
+        console.warn('Chart canvases not found in DOM');
+        return;
+    }
+    
+    try {
+        // Service chart data
+        var serviceLabels = [];
+        var serviceValues = [];
+        
+        @foreach($serviceBreakdown as $service => $data)
+        serviceLabels.push('{{ $service }}');
+        serviceValues.push({{ $data['total'] }});
+        @endforeach
+        
+        // Service Distribution Chart
+        new Chart(serviceChartCanvas, {
+            type: 'doughnut',
+            data: {
+                labels: serviceLabels,
+                datasets: [{
+                    data: serviceValues,
+                    backgroundColor: [
+                        '#3B82F6', '#10B981', '#8B5CF6', '#F59E0B',
+                        '#EF4444', '#6366F1', '#EC4899', '#14B8A6'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                var value = context.raw;
+                                var total = context.dataset.data.reduce(function(a, b) { 
+                                    return a + b; 
+                                }, 0);
+                                var percentage = ((value / total) * 100).toFixed(1);
+                                return '₱' + value.toLocaleString() + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Customer chart data - limit to top 5 customers
+        var customerLabels = [];
+        var customerValues = [];
+        var customerData = {};
+        
+        @foreach($customerBreakdown as $customer => $data)
+        customerData['{{ $customer }}'] = {{ $data['total'] }};
+        @endforeach
+        
+        // Sort customers by total spent and take top 5
+        var sortedCustomers = Object.keys(customerData).sort(function(a, b) {
+            return customerData[b] - customerData[a];
+        }).slice(0, 5);
+        
+        sortedCustomers.forEach(function(customer) {
+            customerLabels.push(customer);
+            customerValues.push(customerData[customer]);
+        });
+        
+        // Customer Revenue Chart
+        new Chart(customerChartCanvas, {
+            type: 'bar',
+            data: {
+                labels: customerLabels,
+                datasets: [{
+                    label: 'Total Spent (₱)',
+                    data: customerValues,
+                    backgroundColor: '#3B82F6'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        console.log('Charts initialized successfully');
+    } catch (err) {
+        console.error('Error initializing charts:', err);
+    }
+}
+
+// Try to initialize charts immediately if Chart.js is already loaded
+if (typeof Chart !== 'undefined') {
+    // Using timeout to ensure DOM is ready
+    setTimeout(initializeCharts, 100);
+}
 </script>
 @endpush
 
@@ -588,18 +570,18 @@
             <table class="print-table">
                 <thead>
                     <tr>
-                        <th>Service</th>
-                        <th>Count</th>
-                        <th>Total Sales</th>
-                        <th>Average Sale</th>
-                        <th>% of Total</th>
+                        <th class="text-left">Service</th>
+                        <th class="text-right">Count</th>
+                        <th class="text-right">Total Sales</th>
+                        <th class="text-right">Average Sale</th>
+                        <th class="text-right">% of Total</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($serviceBreakdown as $service => $data)
                     <tr>
                         <td>{{ $service }}</td>
-                        <td>{{ $data['count'] }}</td>
+                        <td>{{ number_format($data['count']) }}</td>
                         <td>₱{{ number_format($data['total'], 2) }}</td>
                         <td>₱{{ number_format($data['count'] > 0 ? $data['total'] / $data['count'] : 0, 2) }}</td>
                         <td>{{ number_format(($data['total'] / $totalSales) * 100, 1) }}%</td>
@@ -615,18 +597,18 @@
             <table class="print-table">
                 <thead>
                     <tr>
-                        <th>Customer</th>
-                        <th>Repairs</th>
-                        <th>Total Spent</th>
-                        <th>Average Repair</th>
-                        <th>% of Total</th>
+                        <th class="text-left">Customer</th>
+                        <th class="text-right">Repairs</th>
+                        <th class="text-right">Total Spent</th>
+                        <th class="text-right">Average Repair</th>
+                        <th class="text-right">% of Total</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($customerBreakdown as $customer => $data)
                     <tr>
                         <td>{{ $customer }}</td>
-                        <td>{{ $data['count'] }}</td>
+                        <td>{{ number_format($data['count']) }}</td>
                         <td>₱{{ number_format($data['total'], 2) }}</td>
                         <td>₱{{ number_format($data['count'] > 0 ? $data['total'] / $data['count'] : 0, 2) }}</td>
                         <td>{{ number_format(($data['total'] / $totalSales) * 100, 1) }}%</td>

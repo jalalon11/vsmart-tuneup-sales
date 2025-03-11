@@ -25,6 +25,10 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'position' => ['nullable', 'string', Rule::in(['admin', 'manager', 'technician', 'sales', 'staff'])],
+            'address' => ['nullable', 'string', 'max:500'],
+            'bio' => ['nullable', 'string', 'max:1000'],
         ];
     }
 }

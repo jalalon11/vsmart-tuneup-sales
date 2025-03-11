@@ -23,6 +23,10 @@ class User extends Authenticatable
         'email',
         'password',
         'is_admin',
+        'phone',
+        'position',
+        'address',
+        'bio',
     ];
 
     /**
@@ -46,11 +50,29 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'phone' => 'string',
+            'position' => 'string',
+            'address' => 'string',
+            'bio' => 'string',
         ];
     }
 
     public function isAdmin(): bool
     {
         return $this->is_admin;
+    }
+    
+    /**
+     * Get the user's role display name.
+     */
+    public function getPositionDisplayAttribute(): string
+    {
+        return match($this->position) {
+            'admin' => 'Administrator',
+            'manager' => 'Manager',
+            'technician' => 'Technician',
+            'sales' => 'Sales Representative',
+            default => 'Staff Member'
+        };
     }
 }

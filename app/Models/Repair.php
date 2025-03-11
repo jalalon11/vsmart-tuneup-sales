@@ -43,13 +43,11 @@ class Repair extends Model
                         $repair->save();
                     }
                     
-                    // Create sale for each repair item
-                    foreach ($repair->items as $item) {
-                        $repair->sales()->create([
-                            'amount' => $item->cost,
-                            'sale_date' => $repair->completed_at ?? now(),
-                        ]);
-                    }
+                    // Create a single sale record for the entire repair
+                    $repair->sales()->create([
+                        'amount' => $repair->total_cost,
+                        'sale_date' => $repair->completed_at ?? now(),
+                    ]);
                 } elseif ($oldStatus === 'completed' && $newStatus !== 'completed') {
                     // Clear completed_at date and delete sales
                     $repair->completed_at = null;

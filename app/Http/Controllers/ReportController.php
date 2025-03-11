@@ -54,14 +54,13 @@ class ReportController extends Controller
         $customerBreakdown = [];
 
         foreach ($sales as $sale) {
-            $processedServices = []; // Track services already counted for this repair
             $processedCustomers = []; // Track customers already counted for this repair
             
             foreach ($sale->repair->items as $item) {
                 $serviceName = $item->service->name;
                 $customerName = $item->device->customer->name;
                 
-                // Service breakdown
+                // Service breakdown - count each instance
                 if (!isset($serviceBreakdown[$serviceName])) {
                     $serviceBreakdown[$serviceName] = [
                         'count' => 0,
@@ -69,11 +68,8 @@ class ReportController extends Controller
                     ];
                 }
                 
-                // Only increment service count if we haven't counted this service for this repair
-                if (!in_array($serviceName, $processedServices)) {
-                    $serviceBreakdown[$serviceName]['count']++;
-                    $processedServices[] = $serviceName;
-                }
+                // Increment service count for each instance
+                $serviceBreakdown[$serviceName]['count']++;
                 
                 // Customer breakdown
                 if (!isset($customerBreakdown[$customerName])) {
