@@ -91,8 +91,11 @@
     <div class="mb-8">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between">
             <div class="flex-1 min-w-0">
-                <h1 class="text-4xl font-bold text-gray-900 dark:text-white leading-tight">Customers</h1>
-                <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                <div class="flex items-center mb-2">
+                    <img class="h-8 w-8 text-blue-500" src="./img/customer.png" alt="Mobile Icon">
+                    <h1 class="text-4xl font-bold text-gray-900 dark:text-white leading-tight ml-3">Manage Customers</h1>
+                </div>
+                <p class="text-sm text-gray-600 dark:text-gray-400">
                     Manage your customer database and their devices
                 </p>
             </div>
@@ -500,26 +503,24 @@
                                         </svg>
                                         Add New Device
                                     </h3>
-                                    <form id="deviceForm" class="space-y-4" action="javascript:void(0);" onsubmit="return false;">
-                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <div>
-                                                <label for="new-device-brand" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Brand</label>
-                                                <input type="text" id="new-device-brand" name="brand" required
-                                                    class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                            </div>
-                                            <div>
-                                                <label for="new-device-model" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Model</label>
-                                                <input type="text" id="new-device-model" name="model" required
-                                                    class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                            </div>
+                                    <form id="deviceForm" class="space-y-4">
+                                        <div>
+                                            <label for="new-device-brand" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Brand</label>
+                                            <input type="text" id="new-device-brand" name="brand" required
+                                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        </div>
+                                        <div>
+                                            <label for="new-device-model" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Model</label>
+                                            <input type="text" id="new-device-model" name="model" required
+                                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                         </div>
                                         <div class="flex justify-end space-x-3">
                                             <button type="button" onclick="hideAddDeviceForm()" 
-                                                class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                                class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-500 dark:hover:text-gray-400">
                                                 Cancel
                                             </button>
-                                            <button type="submit" 
-                                                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-sm">
+                                            <button type="submit"
+                                                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                                 Add Device
                                             </button>
                                         </div>
@@ -990,11 +991,68 @@ function closeEditModal() {
     hideModal('editCustomerModal', 'editCustomerModalContent', 'editCustomerModalOverlay');
 }
 
+// Function to show alerts
+function showAlert(type, message) {
+    const alertClass = type === 'success' 
+        ? 'bg-green-50 dark:bg-green-900/50 border-green-500 text-green-800 dark:text-green-200' 
+        : 'bg-red-50 dark:bg-red-900/50 border-red-500 text-red-800 dark:text-red-200';
+    
+    const iconPath = type === 'success'
+        ? 'M5 13l4 4L19 7'
+        : 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z';
+    
+    const iconColor = type === 'success' ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400';
+    
+    const alert = document.createElement('div');
+    alert.className = `mb-6 p-4 ${alertClass} border-l-4 rounded-lg shadow-sm`;
+    alert.innerHTML = `
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 ${iconColor}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${iconPath}"/>
+                </svg>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium">${message}</p>
+            </div>
+        </div>
+    `;
+    
+    // Insert alert after the header
+    const header = document.querySelector('.mb-8');
+    if (header) {
+        header.insertAdjacentElement('afterend', alert);
+        
+        // Remove the alert after 5 seconds with fade out
+        setTimeout(() => {
+            alert.style.opacity = '0';
+            alert.style.transition = 'opacity 0.5s ease-in-out';
+            setTimeout(() => alert.remove(), 500);
+        }, 5000);
+    }
+}
+
 // Handle edit form submission
-document.getElementById('editCustomerForm').addEventListener('submit', function(e) {
+function handleEditFormSubmit(e) {
     e.preventDefault();
     const form = this;
     const formData = new FormData(form);
+
+    // Clear any existing error messages
+    form.querySelectorAll('.text-red-600').forEach(el => el.remove());
+    form.querySelectorAll('.border-red-500').forEach(el => el.classList.remove('border-red-500'));
+
+    // Show loading state on submit button
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.innerHTML;
+    submitButton.disabled = true;
+    submitButton.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Updating...
+    `;
 
     fetch(form.action, {
         method: 'POST',
@@ -1008,17 +1066,117 @@ document.getElementById('editCustomerForm').addEventListener('submit', function(
     .then(data => {
         if (data.success) {
             closeEditModal();
-            // Reload the page to show updated data
-            window.location.reload();
+            showAlert('success', data.message || 'Customer updated successfully!');
+            
+            // Update the customer row in the table
+            const customerId = form.action.split('/').pop();
+            const customerRow = document.querySelector(`#customer-${customerId}`);
+            if (customerRow) {
+                const nameCell = customerRow.querySelector('.text-sm.font-medium');
+                const phoneCell = customerRow.querySelector('.text-sm.text-gray-900');
+                const emailCell = customerRow.querySelector('.text-sm.text-gray-500');
+                
+                if (nameCell) nameCell.textContent = formData.get('name');
+                if (phoneCell) phoneCell.textContent = formData.get('phone');
+                if (emailCell) emailCell.textContent = formData.get('email');
+            }
         } else {
-            alert(data.message || 'Error updating customer');
+            // Handle validation errors
+            const errors = data.errors || {};
+            Object.keys(errors).forEach(field => {
+                const input = form.querySelector(`[name="${field}"]`);
+                if (input) {
+                    input.classList.add('border-red-500');
+                    const errorElement = document.createElement('p');
+                    errorElement.className = 'mt-1 text-sm text-red-600 dark:text-red-400';
+                    errorElement.textContent = errors[field][0];
+                    input.parentNode.appendChild(errorElement);
+                }
+            });
+            showAlert('error', data.message || 'Failed to update customer. Please check the form and try again.');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Error updating customer');
+        showAlert('error', 'Error updating customer. Please try again.');
+    })
+    .finally(() => {
+        // Restore button state
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalButtonText;
     });
-});
+}
+
+// Handle customer deletion
+function handleCustomerDelete(e) {
+    e.preventDefault();
+    
+    if (!confirm('Are you sure you want to delete this customer? This action cannot be undone.')) {
+        return false;
+    }
+
+    const form = e.target;
+    const row = form.closest('.customer-row');
+    const deleteButton = form.querySelector('button[type="submit"]');
+    const originalButtonContent = deleteButton.innerHTML;
+    
+    // Show loading state
+    deleteButton.disabled = true;
+    deleteButton.innerHTML = `
+        <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+    `;
+
+    const formData = new FormData(form);
+    formData.append('_method', 'DELETE'); // Add this line to properly send DELETE method
+
+    fetch(form.action, {
+        method: 'POST', // Change this to POST since we're using _method for DELETE
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Fade out and remove the row
+            row.style.opacity = '0';
+            row.style.transition = 'opacity 0.5s ease-in-out';
+            setTimeout(() => row.remove(), 500);
+            
+            showAlert('success', data.message || 'Customer deleted successfully.');
+            
+            // Check if table is empty and show empty state if needed
+            const tbody = document.querySelector('table tbody');
+            if (tbody.children.length <= 1) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                            <p class="text-base">No customers found.</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        } else {
+            showAlert('error', data.message || 'Failed to delete customer.');
+            // Restore button state
+            deleteButton.disabled = false;
+            deleteButton.innerHTML = originalButtonContent;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('error', 'Error deleting customer. Please try again.');
+        // Restore button state
+        deleteButton.disabled = false;
+        deleteButton.innerHTML = originalButtonContent;
+    });
+}
 
 // Close modals when clicking outside
 document.getElementById('customerModal').addEventListener('click', function(event) {
@@ -1056,12 +1214,11 @@ document.addEventListener('keydown', function(event) {
 
 // Add this to your JavaScript after the openViewModal function
 document.getElementById('deviceForm').addEventListener('submit', function(e) {
-    // Prevent the default form submission (though we already have onsubmit="return false" as a backup)
     e.preventDefault();
     e.stopPropagation();
     
     if (!currentCustomerId) {
-        alert('Error: Customer ID not found');
+        console.error('Error: Customer ID not found');
         return false;
     }
 
@@ -1087,11 +1244,17 @@ document.getElementById('deviceForm').addEventListener('submit', function(e) {
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
             'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json',
             'Cache-Control': 'no-cache, no-store'
         },
         body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             // Show success message
@@ -1121,26 +1284,7 @@ document.getElementById('deviceForm').addEventListener('submit', function(e) {
             // Refresh the devices list without reopening the modal
             refreshDeviceList(currentCustomerId);
         } else {
-            // Show error message
-            const errorMessage = document.createElement('div');
-            errorMessage.className = 'mb-4 p-4 bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 rounded-lg';
-            errorMessage.innerHTML = `
-                <div class="flex items-center">
-                    <svg class="h-5 w-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <span class="text-sm text-red-700 dark:text-red-300">${data.message || 'Error adding device'}</span>
-                </div>
-            `;
-            const deviceForm = document.getElementById('add-device-form');
-            deviceForm.insertBefore(errorMessage, deviceForm.firstChild);
-            
-            // Remove error message after 3 seconds
-            setTimeout(() => errorMessage.remove(), 3000);
-            
-            // Restore button state
-            submitButton.disabled = false;
-            submitButton.textContent = originalText;
+            throw new Error(data.message || 'Failed to add device');
         }
     })
     .catch(error => {
@@ -1154,7 +1298,7 @@ document.getElementById('deviceForm').addEventListener('submit', function(e) {
                 <svg class="h-5 w-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                <span class="text-sm text-red-700 dark:text-red-300">Error adding device</span>
+                <span class="text-sm text-red-700 dark:text-red-300">${error.message}</span>
             </div>
         `;
         const deviceForm = document.getElementById('add-device-form');
@@ -1168,7 +1312,6 @@ document.getElementById('deviceForm').addEventListener('submit', function(e) {
         submitButton.textContent = originalText;
     });
     
-    // Return false to make absolutely sure the form doesn't submit
     return false;
 });
 
@@ -1195,6 +1338,35 @@ document.getElementById('customerForm').addEventListener('submit', function(e) {
         if (data.success) {
             // Close the modal
             closeModal();
+            
+            // Show success alert
+            const successAlert = document.createElement('div');
+            successAlert.className = 'mb-6 p-4 bg-green-50 dark:bg-green-900/50 border-l-4 border-green-500 rounded-lg shadow-sm';
+            successAlert.innerHTML = `
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-green-500 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-green-800 dark:text-green-200">${data.message || 'Customer created successfully!'}</p>
+                    </div>
+                </div>
+            `;
+            
+            // Insert the alert after the header
+            const header = document.querySelector('.mb-8');
+            if (header) {
+                header.insertAdjacentElement('afterend', successAlert);
+                
+                // Remove the alert after 5 seconds
+                setTimeout(() => {
+                    successAlert.style.opacity = '0';
+                    successAlert.style.transition = 'opacity 0.5s ease-in-out';
+                    setTimeout(() => successAlert.remove(), 500);
+                }, 5000);
+            }
             
             // Create the new row with fade-in animation
             const newRow = document.createElement('tr');
@@ -1288,7 +1460,7 @@ document.getElementById('customerForm').addEventListener('submit', function(e) {
     .catch(error => {
         console.error('Error:', error);
         const errorAlert = document.createElement('div');
-        errorAlert.className = 'mb-4 p-4 bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 rounded-lg shadow-sm';
+        errorAlert.className = 'mb-6 p-4 bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 rounded-lg shadow-sm';
         errorAlert.innerHTML = `
             <div class="flex items-center">
                 <div class="flex-shrink-0">
@@ -1300,11 +1472,19 @@ document.getElementById('customerForm').addEventListener('submit', function(e) {
                     <p class="text-sm font-medium text-red-800 dark:text-red-200">Error creating customer. Please try again.</p>
                 </div>
             </div>`;
-        form.insertBefore(errorAlert, form.firstChild);
         
-        setTimeout(() => {
-            errorAlert.remove();
-        }, 3000);
+        // Insert error alert after the header
+        const header = document.querySelector('.mb-8');
+        if (header) {
+            header.insertAdjacentElement('afterend', errorAlert);
+            
+            // Remove the alert after 5 seconds
+            setTimeout(() => {
+                errorAlert.style.opacity = '0';
+                errorAlert.style.transition = 'opacity 0.5s ease-in-out';
+                setTimeout(() => errorAlert.remove(), 500);
+            }, 5000);
+        }
     });
 });
 
@@ -2762,6 +2942,89 @@ document.addEventListener('DOMContentLoaded', initializeEventHandlers);
 // Also initialize when the page content changes (for navigation)
 document.addEventListener('turbo:render', initializeEventHandlers);
 document.addEventListener('turbolinks:load', initializeEventHandlers);
+
+// ... existing code ...
+// Initialize event handlers
+function initializeCustomerPage() {
+    // Make functions available globally for inline button onclick handlers
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+    window.openViewModal = openViewModal;
+    window.closeViewModal = closeViewModal;
+    window.openEditModal = openEditModal;
+    window.closeEditModal = closeEditModal;
+    window.createRepairForDevice = createRepairForDevice;
+    window.handleCustomerDelete = handleCustomerDelete;
+    window.refreshDeviceList = refreshDeviceList;
+    
+    // Initialize form event listeners
+    const customerForm = document.getElementById('customerForm');
+    if (customerForm) {
+        customerForm.addEventListener('submit', handleCustomerFormSubmit);
+    }
+
+    const editCustomerForm = document.getElementById('editCustomerForm');
+    if (editCustomerForm) {
+        editCustomerForm.addEventListener('submit', handleEditFormSubmit);
+    }
+
+    // Initialize delete buttons
+    document.querySelectorAll('.delete-customer-form').forEach(form => {
+        form.addEventListener('submit', handleCustomerDelete);
+    });
+
+    // Close modals when clicking outside
+    const modals = {
+        'customerModal': closeModal,
+        'viewCustomerModal': closeViewModal,
+        'editCustomerModal': closeEditModal
+    };
+
+    Object.entries(modals).forEach(([modalId, closeFunction]) => {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.addEventListener('click', function(event) {
+                if (event.target === this) {
+                    closeFunction();
+                }
+            });
+        }
+    });
+
+    // Close modals with escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            Object.values(modals).forEach(closeFunction => closeFunction());
+        }
+    });
+
+    console.log('Customer page event listeners initialized');
+}
+
+// Initialize on page load and after Turbo navigation
+document.addEventListener('DOMContentLoaded', initializeCustomerPage);
+document.addEventListener('turbo:load', initializeCustomerPage);
+document.addEventListener('turbo:render', initializeCustomerPage);
+
+// Cleanup before navigation
+document.addEventListener('turbo:before-cache', function() {
+    // Reset modal functions
+    const functionsToCleanup = [
+        'openModal',
+        'closeModal',
+        'openViewModal',
+        'closeViewModal',
+        'openEditModal',
+        'closeEditModal',
+        'createRepairForDevice',
+        'handleCustomerDelete',
+        'refreshDeviceList'
+    ];
+    
+    functionsToCleanup.forEach(function(func) {
+        window[func] = null;
+    });
+});
 </script>
 @endpush
 

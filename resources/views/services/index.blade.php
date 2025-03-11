@@ -7,7 +7,10 @@
         <div class="mb-8">
             <div class="flex justify-between items-center">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Services</h1>
+                <h1 class="text-2xl font-bold animated-title flex items-center">
+                    <img class="h-8 w-8 text-blue-500 mr-3" src="./img/optimizing.png" alt="Mobile Icon">
+                        Manage Services
+                    </h1>
                     <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Manage your service offerings and pricing</p>
                 </div>
                 <button type="button" 
@@ -202,10 +205,6 @@
     }
     
     function showAlert(type, message) {
-        // Remove any existing alerts
-        const existingAlerts = document.querySelectorAll('.alert-message');
-        existingAlerts.forEach(alert => alert.remove());
-        
         const alertClass = type === 'success' 
             ? 'bg-green-50 dark:bg-green-900/50 border-green-500 text-green-800 dark:text-green-200' 
             : 'bg-red-50 dark:bg-red-900/50 border-red-500 text-red-800 dark:text-red-200';
@@ -214,12 +213,14 @@
             ? 'M5 13l4 4L19 7'
             : 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z';
         
+        const iconColor = type === 'success' ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400';
+        
         const alert = document.createElement('div');
-        alert.className = `alert-message mt-4 p-4 ${alertClass} border-l-4 rounded-lg shadow-sm`;
+        alert.className = `mb-6 p-4 ${alertClass} border-l-4 rounded-lg shadow-sm`;
         alert.innerHTML = `
             <div class="flex items-center">
                 <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 ${type === 'success' ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="h-5 w-5 ${iconColor}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${iconPath}"/>
                     </svg>
                 </div>
@@ -231,20 +232,16 @@
         
         // Insert alert after the header
         const header = document.querySelector('.mb-8');
-        header.appendChild(alert);
-        
-        // Fade in the alert
-        alert.style.opacity = '0';
-        requestAnimationFrame(() => {
-            alert.style.transition = 'opacity 0.3s ease-in-out';
-            alert.style.opacity = '1';
-        });
-        
-        // Remove the alert after 5 seconds
-        setTimeout(() => {
-            alert.style.opacity = '0';
-            setTimeout(() => alert.remove(), 300);
-        }, 5000);
+        if (header) {
+            header.insertAdjacentElement('afterend', alert);
+            
+            // Remove the alert after 5 seconds with fade out
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                alert.style.transition = 'opacity 0.5s ease-in-out';
+                setTimeout(() => alert.remove(), 500);
+            }, 5000);
+        }
     }
 
     function submitForm() {
@@ -372,41 +369,87 @@
         });
     }
 
+    function showModal(modalId, contentId, overlayId) {
+        try {
+            const modal = document.getElementById(modalId);
+            const content = document.getElementById(contentId);
+            const overlay = document.getElementById(overlayId);
+            
+            if (!modal || !content || !overlay) {
+                console.error(`Modal elements not found for ${modalId}`);
+                return;
+            }
+            
+            // Show modal
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            // Animate overlay
+            overlay.classList.add('ease-out', 'duration-300');
+            overlay.classList.remove('opacity-0');
+            overlay.classList.add('opacity-100');
+            
+            // Animate content
+            content.classList.add('ease-out', 'duration-300');
+            setTimeout(() => {
+                content.classList.remove('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
+                content.classList.add('opacity-100', 'translate-y-0', 'sm:scale-100');
+            }, 100);
+        } catch (error) {
+            console.error('Error showing modal:', error);
+        }
+    }
+
+    function hideModal(modalId, contentId, overlayId) {
+        try {
+            const modal = document.getElementById(modalId);
+            const content = document.getElementById(contentId);
+            const overlay = document.getElementById(overlayId);
+            
+            if (!modal || !content || !overlay) {
+                console.error(`Modal elements not found for ${modalId}`);
+                return;
+            }
+            
+            // Animate overlay
+            overlay.classList.add('ease-in', 'duration-200');
+            overlay.classList.remove('opacity-100');
+            overlay.classList.add('opacity-0');
+            
+            // Animate content
+            content.classList.add('ease-in', 'duration-200');
+            content.classList.remove('opacity-100', 'translate-y-0', 'sm:scale-100');
+            content.classList.add('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
+            
+            // Hide modal after animation
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }, 200);
+        } catch (error) {
+            console.error('Error hiding modal:', error);
+            // Still try to hide the modal even if animation fails
+            try {
+                document.getElementById(modalId).classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            } catch (e) {}
+        }
+    }
+
     function openModal() {
-        document.getElementById('createModal').classList.remove('hidden');
-        setTimeout(() => {
-            document.getElementById('createModalOverlay').classList.remove('opacity-0');
-            document.getElementById('createModalContent').classList.remove('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
-            document.getElementById('createModalContent').classList.add('opacity-100', 'translate-y-0', 'sm:scale-100');
-        }, 50);
+        showModal('createModal', 'createModalContent', 'createModalOverlay');
     }
 
     function closeModal() {
-        document.getElementById('createModalOverlay').classList.add('opacity-0');
-        document.getElementById('createModalContent').classList.add('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
-        document.getElementById('createModalContent').classList.remove('opacity-100', 'translate-y-0', 'sm:scale-100');
-        setTimeout(() => {
-            document.getElementById('createModal').classList.add('hidden');
-        }, 300);
+        hideModal('createModal', 'createModalContent', 'createModalOverlay');
     }
 
-    // Category modal functions
     function openCategoryModal() {
-        document.getElementById('categoryModal').classList.remove('hidden');
-        setTimeout(() => {
-            document.getElementById('categoryModalOverlay').classList.remove('opacity-0');
-            document.getElementById('categoryModalContent').classList.remove('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
-            document.getElementById('categoryModalContent').classList.add('opacity-100', 'translate-y-0', 'sm:scale-100');
-        }, 50);
+        showModal('categoryModal', 'categoryModalContent', 'categoryModalOverlay');
     }
 
     function closeCategoryModal() {
-        document.getElementById('categoryModalOverlay').classList.add('opacity-0');
-        document.getElementById('categoryModalContent').classList.add('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
-        document.getElementById('categoryModalContent').classList.remove('opacity-100', 'translate-y-0', 'sm:scale-100');
-        setTimeout(() => {
-            document.getElementById('categoryModal').classList.add('hidden');
-        }, 300);
+        hideModal('categoryModal', 'categoryModalContent', 'categoryModalOverlay');
     }
 
     function submitCategory() {
@@ -498,8 +541,8 @@
         });
     }
 
-    // Initialize event listeners
-    function initializeServicePage() {
+    // Initialize modal functions
+    function initializeModalFunctions() {
         // Make functions available globally for inline button onclick handlers
         window.openModal = openModal;
         window.closeModal = closeModal;
@@ -510,30 +553,65 @@
         window.confirmDelete = confirmDelete;
         
         // Close modals when clicking outside
-        window.addEventListener('click', function(event) {
-            if (event.target.id === 'createModalOverlay') {
-                closeModal();
-            } else if (event.target.id === 'categoryModalOverlay') {
-                closeCategoryModal();
+        const modals = {
+            'createModal': closeModal,
+            'categoryModal': closeCategoryModal
+        };
+
+        Object.entries(modals).forEach(([modalId, closeFunction]) => {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.addEventListener('click', function(event) {
+                    if (event.target === this || event.target.id.includes('Overlay')) {
+                        closeFunction();
+                    }
+                });
+            }
+        });
+
+        // Close modals with escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                Object.values(modals).forEach(closeFunction => closeFunction());
             }
         });
         
-        // Close modals with escape key
-        window.addEventListener('keydown', function(event) {
+        console.log('Service page modal functions initialized');
+    }
+
+    // Initialize on page load and after Turbo navigation
+    document.addEventListener('DOMContentLoaded', initializeModalFunctions);
+    document.addEventListener('turbo:load', initializeModalFunctions);
+    document.addEventListener('turbo:render', initializeModalFunctions);
+
+    // Cleanup before navigation
+    document.addEventListener('turbo:before-cache', function() {
+        // Reset modal functions
+        const functionsToCleanup = [
+            'openModal',
+            'closeModal',
+            'openCategoryModal',
+            'closeCategoryModal',
+            'submitForm',
+            'submitCategory',
+            'confirmDelete'
+        ];
+        
+        functionsToCleanup.forEach(function(func) {
+            if (window[func]) {
+                window[func] = null;
+            }
+        });
+        
+        // Remove event listeners
+        const keydownListener = function(event) {
             if (event.key === 'Escape') {
                 closeModal();
                 closeCategoryModal();
             }
-        });
-        
-        console.log('Service page event listeners initialized');
-    }
-    
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', initializeServicePage);
-    
-    // Initialize after navigation
-    document.addEventListener('page:loaded', initializeServicePage);
+        };
+        document.removeEventListener('keydown', keydownListener);
+    });
 </script>
 @endpush
 

@@ -244,9 +244,9 @@
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <h1 class="text-2xl font-bold animated-title flex items-center">
             <img class="h-8 w-8 text-blue-500 mr-3" src="./img/mobile.png" alt="Mobile Icon">
-
-                Repair Management
+                Manage Repairs
             </h1>
+            
             <div class="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto">
                 <!-- Enhanced Search Form -->
                 <form id="searchForm" action="{{ route('repairs.index') }}" method="GET" class="flex items-center w-full md:w-auto relative">
@@ -1122,47 +1122,90 @@
 @push('scripts')
 <script>
     // Function to fetch devices for a customer
-    function fetchDevicesForCustomer(customerId) {
+    async function fetchDevicesForCustomer(customerId) {
+        if (!customerId) return;
+        
         console.log('Fetching devices for customer ID:', customerId);
         
-        // Show loading indicator
+        // Show loading indicator in all device selects
         const deviceSelects = document.querySelectorAll('.device-select');
         deviceSelects.forEach(select => {
-            select.disabled = false;
             select.innerHTML = '<option value="">Loading devices...</option>';
+            select.disabled = true;
         });
         
-        // Fetch devices using AJAX
-        fetch(`/api/customers/${customerId}/devices`)
-            .then(response => response.json())
-            .then(devices => {
-                console.log('Devices fetched:', devices);
-                
-                // Create options HTML
-                let optionsHtml = '<option value="">Select a device</option>';
-                devices.forEach(device => {
-                    optionsHtml += `<option value="${device.id}">${device.brand} ${device.model}</option>`;
-                });
-                
-                // Update all device select elements
-                deviceSelects.forEach(select => {
-                    select.innerHTML = optionsHtml;
-                });
-                
-                // Enable add item button
-                const addItemBtn = document.getElementById('add-item-btn');
-                if (addItemBtn) {
-                    addItemBtn.disabled = false;
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching devices:', error);
-                deviceSelects.forEach(select => {
-                    select.innerHTML = '<option value="">Error loading devices</option>';
-                });
+        try {
+            const response = await fetch(`/api/customers/${customerId}/devices`);
+            if (!response.ok) throw new Error('Failed to fetch devices');
+            
+            const devices = await response.json();
+            console.log('Devices fetched:', devices);
+            
+            // Create options HTML
+            let optionsHtml = '<option value="">Select a device</option>';
+            devices.forEach(device => {
+                const deviceName = `${device.brand} ${device.model}${device.serial_number ? ` (${device.serial_number})` : ''}`;
+                optionsHtml += `<option value="${device.id}">${deviceName}</option>`;
             });
+            
+            // Update all device select elements
+            deviceSelects.forEach(select => {
+                select.innerHTML = optionsHtml;
+                select.disabled = false;
+            });
+            
+            // Enable add item button
+            const addItemBtn = document.getElementById('add-item-btn');
+            if (addItemBtn) addItemBtn.disabled = false;
+            
+        } catch (error) {
+            console.error('Error fetching devices:', error);
+            deviceSelects.forEach(select => {
+                select.innerHTML = '<option value="">Error loading devices</option>';
+                select.disabled = false;
+            });
+        }
     }
-    
+
+    // Function to initialize repair form
+    function initializeRepairForm() {
+        console.log('Initializing repair form');
+        
+        // Set up customer select event listener
+        const customerSelect = document.getElementById('customer_id');
+        if (customerSelect) {
+            // Remove existing event listeners
+            customerSelect.removeEventListener('change', handleCustomerChange);
+            // Add new event listener
+            customerSelect.addEventListener('change', handleCustomerChange);
+
+            // If customer is already selected, fetch devices
+            if (customerSelect.value) {
+                fetchDevicesForCustomer(customerSelect.value);
+            }
+        }
+
+        // Set up service select events
+        setupServiceSelectEvents();
+    }
+
+    // Handler for customer select changes
+    function handleCustomerChange(event) {
+        fetchDevicesForCustomer(event.target.value);
+    }
+
+    // Initialize when DOM content is loaded
+    document.addEventListener('DOMContentLoaded', initializeRepairForm);
+
+    // Initialize when Turbo loads a new page
+    document.addEventListener('turbo:load', initializeRepairForm);
+
+    // Initialize when the repair modal is opened
+    document.addEventListener('open-repair-modal', function() {
+        console.log('Repair modal opened');
+        setTimeout(initializeRepairForm, 100); // Small delay to ensure modal content is loaded
+    });
+
     // Function to add a new repair item
     function addRepairItem() {
         const repairItems = document.getElementById('repair-items');
@@ -1180,17 +1223,18 @@
             }
         });
         
-        // Make sure device select is enabled
-        const deviceSelect = templateContent.querySelector('.device-select');
-        if (deviceSelect) {
-            deviceSelect.disabled = false;
-            
-            // Copy options from the first device select
-            const firstDeviceSelect = document.querySelector('.device-select');
-            if (firstDeviceSelect && firstDeviceSelect.options.length > 0) {
-                Array.from(firstDeviceSelect.options).forEach(option => {
-                    deviceSelect.add(option.cloneNode(true));
-                });
+        // Get the current customer ID and fetch devices if needed
+        const customerSelect = document.getElementById('customer_id');
+        if (customerSelect && customerSelect.value) {
+            const deviceSelect = templateContent.querySelector('.device-select');
+            if (deviceSelect) {
+                // Copy options from the first device select
+                const firstDeviceSelect = document.querySelector('.device-select');
+                if (firstDeviceSelect && firstDeviceSelect.options.length > 0) {
+                    Array.from(firstDeviceSelect.options).forEach(option => {
+                        deviceSelect.add(option.cloneNode(true));
+                    });
+                }
             }
         }
         
@@ -1206,65 +1250,50 @@
         // Set up service select change event to update cost
         setupServiceSelectEvents();
     }
-    
+
     // Function to remove a repair item
     function removeRepairItem(button) {
-        // Get the repair item container
         const repairItem = button.closest('.repair-item');
-        
-        // Add exit animation
         repairItem.classList.add('animate__animated', 'animate__fadeOut');
-        
-        // Remove after animation
-        setTimeout(() => {
-            repairItem.remove();
-        }, 300);
+        setTimeout(() => repairItem.remove(), 300);
     }
-    
+
     // Function to set up service select change events
     function setupServiceSelectEvents() {
         const serviceSelects = document.querySelectorAll('.service-select');
-        
         serviceSelects.forEach(select => {
-            // Add event listener to update cost
-            select.addEventListener('change', function() {
-                const option = this.options[this.selectedIndex];
-                if (option && option.dataset.price) {
-                    // Find the cost input in the same repair item
-                    const repairItem = this.closest('.repair-item');
-                    const costInput = repairItem.querySelector('.cost-input');
-                    if (costInput) {
-                        costInput.value = parseFloat(option.dataset.price).toFixed(2);
-                    }
-                }
-            });
+            select.removeEventListener('change', handleServiceChange);
+            select.addEventListener('change', handleServiceChange);
         });
     }
 
-    // Initialize when DOM content is loaded
-    document.addEventListener('DOMContentLoaded', function() {
-        // Set up service select events
-        setupServiceSelectEvents();
-        
-        // Set up customer select event listener
+    // Handler for service select changes
+    function handleServiceChange(event) {
+        const option = event.target.options[event.target.selectedIndex];
+        if (option && option.dataset.price) {
+            const repairItem = event.target.closest('.repair-item');
+            const costInput = repairItem.querySelector('.cost-input');
+            if (costInput) {
+                costInput.value = parseFloat(option.dataset.price).toFixed(2);
+            }
+        }
+    }
+
+    // Clean up function to remove event listeners
+    function cleanupRepairForm() {
         const customerSelect = document.getElementById('customer_id');
         if (customerSelect) {
-            customerSelect.addEventListener('change', function() {
-                if (this.value) {
-                    fetchDevicesForCustomer(this.value);
-                }
-            });
+            customerSelect.removeEventListener('change', handleCustomerChange);
         }
-        
-        // Set up form submission
-        const repairForm = document.getElementById('repairForm');
-        if (repairForm) {
-            repairForm.addEventListener('submit', function(event) {
-                // Add any form validation here if needed
-                console.log('Submitting repair form');
-            });
-        }
-    });
+
+        const serviceSelects = document.querySelectorAll('.service-select');
+        serviceSelects.forEach(select => {
+            select.removeEventListener('change', handleServiceChange);
+        });
+    }
+
+    // Clean up when navigating away
+    document.addEventListener('turbo:before-cache', cleanupRepairForm);
 </script>
 @endpush
 @endsection

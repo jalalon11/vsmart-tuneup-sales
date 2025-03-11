@@ -244,4 +244,9 @@ class CustomerController extends Controller
 
         return redirect()->back()->with('success', 'Device added successfully');
     }
+
+    public function getDevices(Customer $customer)
+    {
+        return response()->json($customer->devices);
+    }
 } 

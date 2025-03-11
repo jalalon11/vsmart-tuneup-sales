@@ -48,9 +48,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports', [ReportController::class, 'generate'])->name('reports.generate');
 
     // Add this with your other routes
-    Route::get('/api/customers/{customer}/devices', [CustomerController::class, 'devices'])
-        ->name('api.customer.devices')
-        ->middleware('auth');
+    Route::get('/api/customers/{customer}/devices', [CustomerController::class, 'getDevices'])
+        ->name('customers.devices');
         
     // Add device to customer
     Route::post('/customers/{customer}/devices', [CustomerController::class, 'addDevice'])
