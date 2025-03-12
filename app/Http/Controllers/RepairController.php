@@ -92,7 +92,7 @@ class RepairController extends Controller
         $perPage = $request->get('perPage', 10);
         $repairs = $query->paginate($perPage)->withQueryString();
         $customers = Customer::orderBy('name')->get();
-        $services = Service::with('category')->orderBy('name')->get();
+        $services = Service::active()->with('category')->orderBy('name')->get();
         
         return View::make('repairs.index', compact(
             'repairs', 
@@ -183,7 +183,7 @@ class RepairController extends Controller
     {
         $repair->load(['items.device.customer', 'items.service']);
         $devices = Device::with('customer')->get();
-        $services = Service::all();
+        $services = Service::active()->orderBy('name')->get();
         return View::make('repairs.edit', compact('repair', 'devices', 'services'));
     }
 

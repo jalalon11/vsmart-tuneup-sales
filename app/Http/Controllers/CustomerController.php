@@ -47,7 +47,10 @@ class CustomerController extends Controller
             ->withQueryString();
 
         // Add services for repair modal
-        $services = \App\Models\Service::with('category')->orderBy('name')->get();
+        $services = \App\Models\Service::with('category')
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
 
         return ViewFacade::make('customers.index', compact('customers', 'services'));
     }
