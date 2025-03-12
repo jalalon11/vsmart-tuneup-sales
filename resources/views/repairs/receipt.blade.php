@@ -213,6 +213,10 @@
                     <div class="label">Contact</div>
                     <div class="value">{{ $repair->items->first()->device->customer->phone }}</div>
                 </div>
+                <div class="info-item">
+                    <div class="label">Date Received</div>
+                    <div class="value">{{ $repair->created_at->timezone('Asia/Manila')->format('F j, Y g:i A') }} PHT</div>
+                </div>
             </div>
             <div class="info-right">
                 <div class="info-item">
@@ -225,16 +229,16 @@
                         @endif
                     ">{{ ucfirst($repair->status) }}</div>
                 </div>
-                @if($repair->started_at)
+                @if($repair->started_at && $repair->status !== 'pending')
                 <div class="info-item">
-                    <div class="label">Service Date</div>
-                    <div class="value">{{ $repair->started_at->timezone('Asia/Manila')->format('F j, Y g:i A') }}</div>
+                    <div class="label">Service Started Date</div>
+                    <div class="value">{{ $repair->started_at->timezone('Asia/Manila')->format('F j, Y g:i A') }} PHT</div>
                 </div>
                 @endif
                 @if($repair->completed_at)
                 <div class="info-item">
                     <div class="label">Completion Date</div>
-                    <div class="value">{{ $repair->completed_at->timezone('Asia/Manila')->format('F j, Y g:i A') }}</div>
+                    <div class="value">{{ $repair->completed_at->timezone('Asia/Manila')->format('F j, Y g:i A') }} PHT</div>
                 </div>
                 @endif
             </div>

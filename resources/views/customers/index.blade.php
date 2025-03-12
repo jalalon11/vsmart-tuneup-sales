@@ -3106,8 +3106,8 @@ document.addEventListener('turbo:before-cache', function() {
                                                 <select name="items[INDEX][status]" required
                                                     class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                                     <option value="pending">Pending</option>
-                                                    <option value="completed">Completed</option>
-                                                    <option value="cancelled">Cancelled</option>
+                                                    <!-- <option value="completed">Completed</option>
+                                                    <option value="cancelled">Cancelled</option> -->
                                                 </select>
                                             </div>
                                         </div>
@@ -3167,8 +3167,8 @@ document.addEventListener('turbo:before-cache', function() {
                                             <select name="items[0][status]" required
                                                 class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                                 <option value="pending">Pending</option>
-                                                <option value="completed">Completed</option>
-                                                <option value="cancelled">Cancelled</option>
+                                                <!-- <option value="completed">Completed</option>
+                                                <option value="cancelled">Cancelled</option> -->
                                             </select>
                                         </div>
                                     </div>

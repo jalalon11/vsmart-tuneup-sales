@@ -1,241 +1,125 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('My Profile') }}
-        </h2>
-    </x-slot>
+@extends('layouts.app')
 
+@section('header')
+    {{ __('My Profile') }}
+@endsection
+
+@section('content')
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg overflow-hidden">
-                <!-- Profile Header Banner -->
-                <div class="bg-gradient-to-r from-blue-500 to-blue-700 h-32 relative">
-                    <!-- Profile Avatar -->
-                    <div class="absolute -bottom-12 left-8">
-                        <div class="h-24 w-24 rounded-full bg-white dark:bg-gray-700 flex items-center justify-center text-3xl font-bold text-blue-600 dark:text-blue-400 border-4 border-white dark:border-gray-800 shadow-md">
-                            {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}
-                        </div>
-                    </div>
-                </div>
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+            <!-- Back Button -->
+            <div class="mb-4">
+                <a href="{{ route('profile.show') }}" class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 border border-transparent rounded-md font-semibold text-xs text-gray-800 dark:text-gray-200 uppercase tracking-widest hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Profile
+                </a>
+            </div>
 
-                <div class="px-8 pt-16 pb-8">
-                    <!-- User Info -->
-                    <div class="mb-6">
-                        <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200">{{ auth()->user()->name }}</h3>
-                        <p class="text-gray-500 dark:text-gray-400">{{ auth()->user()->email }}</p>
-                        <div class="mt-2 flex items-center">
-                            <div class="px-3 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 text-xs font-medium">
-                                {{ auth()->user()->position_display }}
-                            </div>
-                            <span class="mx-2 text-gray-400">•</span>
-                            <span class="text-sm text-gray-500 dark:text-gray-400">
-                                Joined {{ auth()->user()->created_at->format('M Y') }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tabs Navigation -->
-                <div class="border-b border-gray-200 dark:border-gray-700" x-data="{ activeTab: 'personal' }">
-                    <div class="px-8">
-                        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                            <button @click="activeTab = 'personal'" :class="{ 'border-blue-500 text-blue-600 dark:text-blue-400': activeTab === 'personal', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300': activeTab !== 'personal' }" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
+                <div class="max-w-xl" x-data="{ activeTab: 'personal' }">
+                    <!-- Tabs -->
+                    <div class="border-b border-gray-200 dark:border-gray-700 mb-6">
+                        <nav class="-mb-px flex space-x-8">
+                            <button @click="activeTab = 'personal'"
+                                :class="{ 'border-blue-500 text-blue-600': activeTab === 'personal', 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700': activeTab !== 'personal' }"
+                                class="py-4 px-1 border-b-2 font-medium text-sm focus:outline-none">
                                 Personal Information
                             </button>
-                            <button @click="activeTab = 'security'" :class="{ 'border-blue-500 text-blue-600 dark:text-blue-400': activeTab === 'security', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300': activeTab !== 'security' }" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                            <button @click="activeTab = 'security'"
+                                :class="{ 'border-blue-500 text-blue-600': activeTab === 'security', 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700': activeTab !== 'security' }"
+                                class="py-4 px-1 border-b-2 font-medium text-sm focus:outline-none">
                                 Security
-                            </button>
-                            <button @click="activeTab = 'danger'" :class="{ 'border-blue-500 text-blue-600 dark:text-blue-400': activeTab === 'danger', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300': activeTab !== 'danger' }" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                                Danger Zone
                             </button>
                         </nav>
                     </div>
-                </div>
 
-                <!-- Tab Contents -->
-                <div class="px-8 py-6">
-                    <!-- Personal Information Tab -->
-                    <div x-show="activeTab === 'personal'">
+                    <!-- Personal Information Form -->
+                    <div x-show="activeTab === 'personal'" x-cloak>
                         <form method="post" action="{{ route('profile.update') }}" class="space-y-6">
                             @csrf
                             @method('patch')
-                            
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Full Name</label>
-                                    <input type="text" id="name" name="name" value="{{ auth()->user()->name }}" 
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300" />
-                                    @error('name')
-                                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                                
-                                <div>
-                                    <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email Address</label>
-                                    <input type="email" id="email" name="email" value="{{ auth()->user()->email }}"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300" />
-                                    @error('email')
-                                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                    @enderror
-                                </div>
 
-                                <div>
-                                    <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone Number</label>
-                                    <input type="tel" id="phone" name="phone" value="{{ auth()->user()->phone }}"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300" />
-                                    @error('phone')
-                                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                <div>
-                                    <label for="position" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Position</label>
-                                    <select id="position" name="position" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300">
-                                        <option value="admin" {{ auth()->user()->position === 'admin' ? 'selected' : '' }}>Administrator</option>
-                                        <option value="manager" {{ auth()->user()->position === 'manager' ? 'selected' : '' }}>Manager</option>
-                                        <option value="technician" {{ auth()->user()->position === 'technician' ? 'selected' : '' }}>Technician</option>
-                                        <option value="sales" {{ auth()->user()->position === 'sales' ? 'selected' : '' }}>Sales Representative</option>
-                                    </select>
-                                    @error('position')
-                                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                    @enderror
-                                </div>
+                            <div>
+                                <x-input-label for="name" :value="__('Name')" />
+                                <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name', $user->name)" required autofocus autocomplete="name" />
+                                <x-input-error class="mt-2" :messages="$errors->get('name')" />
                             </div>
 
                             <div>
-                                <label for="address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Address</label>
-                                <textarea id="address" name="address" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300">{{ auth()->user()->address }}</textarea>
-                                @error('address')
-                                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                @enderror
+                                <x-input-label for="email" :value="__('Email')" />
+                                <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required autocomplete="username" />
+                                <x-input-error class="mt-2" :messages="$errors->get('email')" />
                             </div>
 
                             <div>
-                                <label for="bio" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Bio</label>
-                                <textarea id="bio" name="bio" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300">{{ auth()->user()->bio }}</textarea>
-                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Write a few sentences about yourself.</p>
-                                @error('bio')
-                                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                @enderror
+                                <x-input-label for="position" :value="__('Position')" />
+                                <select id="position" name="position" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
+                                    @foreach($positions as $value => $label)
+                                        <option value="{{ $value }}" {{ old('position', $user->position) === $value ? 'selected' : '' }}>
+                                            {{ $label }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <x-input-error class="mt-2" :messages="$errors->get('position')" />
                             </div>
-                            
-                            <div class="flex items-center justify-end mt-6">
-                                @if (session('status') === 'profile-updated')
-                                    <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 3000)" class="text-sm text-green-600 dark:text-green-400 mr-3">
-                                        Profile information saved successfully.
-                                    </p>
-                                @endif
-                                <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    Save Changes
-                                </button>
+
+                            <div>
+                                <x-input-label for="address" :value="__('Address')" />
+                                <textarea id="address" name="address" rows="3" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">{{ old('address', $user->address) }}</textarea>
+                                <x-input-error class="mt-2" :messages="$errors->get('address')" />
+                            </div>
+
+                            <div>
+                                <x-input-label for="bio" :value="__('Bio')" />
+                                <textarea id="bio" name="bio" rows="4" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">{{ old('bio', $user->bio) }}</textarea>
+                                <x-input-error class="mt-2" :messages="$errors->get('bio')" />
+                            </div>
+
+                            <div class="flex items-center gap-4">
+                                <x-primary-button>{{ __('Save') }}</x-primary-button>
+                                <a href="{{ route('profile.show') }}" class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 border border-transparent rounded-md font-semibold text-xs text-gray-800 dark:text-gray-200 uppercase tracking-widest hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
+                                    Cancel
+                                </a>
                             </div>
                         </form>
                     </div>
 
-                    <!-- Security Tab -->
-                    <div x-show="activeTab === 'security'" style="display: none;">
+                    <!-- Security Form -->
+                    <div x-show="activeTab === 'security'" x-cloak>
                         <form method="post" action="{{ route('password.update') }}" class="space-y-6">
                             @csrf
                             @method('put')
 
-                            <div class="grid grid-cols-1 gap-6">
-                                <div>
-                                    <label for="current_password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Current Password</label>
-                                    <div class="mt-1 relative rounded-md shadow-sm">
-                                        <input type="password" id="current_password" name="current_password"
-                                            class="block w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300" />
-                                    </div>
-                                    @error('current_password')
-                                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                                
-                                <div>
-                                    <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">New Password</label>
-                                    <div class="mt-1 relative rounded-md shadow-sm">
-                                        <input type="password" id="password" name="password"
-                                            class="block w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300" />
-                                    </div>
-                                    @error('password')
-                                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                                
-                                <div>
-                                    <label for="password_confirmation" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirm Password</label>
-                                    <div class="mt-1 relative rounded-md shadow-sm">
-                                        <input type="password" id="password_confirmation" name="password_confirmation"
-                                            class="block w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300" />
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="flex items-center justify-end mt-6">
-                                @if (session('status') === 'password-updated')
-                                    <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 3000)" class="text-sm text-green-600 dark:text-green-400 mr-3">
-                                        Password updated successfully.
-                                    </p>
-                                @endif
-                                <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                                    </svg>
-                                    Update Password
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-
-                    <!-- Danger Zone Tab -->
-                    <div x-show="activeTab === 'danger'" style="display: none;">
-                        <div class="rounded-md bg-red-50 dark:bg-red-900/20 p-4 mb-6">
-                            <div class="flex">
-                                <div class="flex-shrink-0">
-                                    <svg class="h-5 w-5 text-red-400 dark:text-red-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <div class="ml-3">
-                                    <h3 class="text-sm font-medium text-red-800 dark:text-red-300">Danger Zone</h3>
-                                    <div class="mt-2 text-sm text-red-700 dark:text-red-400">
-                                        <p>
-                                            Once your account is deleted, all of its resources and data will be permanently deleted. Before deleting your account, please download any data or information that you wish to retain.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <form method="post" action="{{ route('profile.destroy') }}" class="inline">
-                            @csrf
-                            @method('delete')
-                            
-                            <div class="mb-4">
-                                <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    To verify, type your password
-                                </label>
-                                <div class="mt-1">
-                                    <input type="password" name="password" id="password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300" placeholder="Your password" required />
-                                </div>
-                                @error('password', 'userDeletion')
-                                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                @enderror
+                            <div>
+                                <x-input-label for="current_password" :value="__('Current Password')" />
+                                <x-text-input id="current_password" name="current_password" type="password" class="mt-1 block w-full" autocomplete="current-password" />
+                                <x-input-error :messages="$errors->updatePassword->get('current_password')" class="mt-2" />
                             </div>
 
-                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:bg-red-700 active:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150"
-                                    onclick="return confirm('Are you sure you want to delete your account? This action cannot be undone.');">
-                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                                Delete Account
-                            </button>
+                            <div>
+                                <x-input-label for="password" :value="__('New Password')" />
+                                <x-text-input id="password" name="password" type="password" class="mt-1 block w-full" autocomplete="new-password" />
+                                <x-input-error :messages="$errors->updatePassword->get('password')" class="mt-2" />
+                            </div>
+
+                            <div>
+                                <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
+                                <x-text-input id="password_confirmation" name="password_confirmation" type="password" class="mt-1 block w-full" autocomplete="new-password" />
+                                <x-input-error :messages="$errors->updatePassword->get('password_confirmation')" class="mt-2" />
+                            </div>
+
+                            <div class="flex items-center gap-4">
+                                <x-primary-button>{{ __('Save') }}</x-primary-button>
+                                <a href="{{ route('profile.show') }}" class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 border border-transparent rounded-md font-semibold text-xs text-gray-800 dark:text-gray-200 uppercase tracking-widest hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
+                                    Cancel
+                                </a>
+                            </div>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</x-app-layout>
+@endsection

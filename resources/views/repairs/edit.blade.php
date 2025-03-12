@@ -161,6 +161,16 @@
             <!-- Status and Dates -->
             <div class="border-t dark:border-gray-700 pt-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Date Created -->
+                    <div>
+                        <label for="created_at" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date Created</label>
+                        <input type="datetime-local" id="created_at" 
+                               value="{{ $repair->created_at ? $repair->created_at->timezone('Asia/Manila')->format('Y-m-d\TH:i') : '' }}"
+                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-100"
+                               readonly>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Initial creation date of the repair</p>
+                    </div>
+
                     <!-- Status -->
                     <div>
                         <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
@@ -190,11 +200,11 @@
                         <label for="started_at" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
                         <!-- Store exact PHP datetime string to preserve format -->
                         <input type="hidden" name="started_at" id="started_at_hidden"
-                               value="{{ $repair->started_at ? $repair->started_at->format('Y-m-d H:i:s') : '' }}">
+                               value="{{ ($repair->status === 'in_progress' && $repair->started_at) ? $repair->started_at->format('Y-m-d H:i:s') : '' }}">
                         
                         <!-- Visible readonly field to show the correct formatted date -->
                         <input type="datetime-local" id="started_at" 
-                               value="{{ $repair->started_at ? $repair->started_at->timezone('Asia/Manila')->format('Y-m-d\TH:i') : '' }}"
+                               value="{{ ($repair->status === 'in_progress' && $repair->started_at) ? $repair->started_at->timezone('Asia/Manila')->format('Y-m-d\TH:i') : '' }}"
                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                {{ $repair->started_at ? 'readonly' : '' }}>
                     </div>
@@ -256,7 +266,7 @@
 let itemIndex = {{ count($repair->items) }};
 
 // Timer functionality with continuous duration counter
-(function initializeTimer() {
+(function() {
     // Get DOM elements
     const durationField = document.getElementById('duration');
     const durationSecondsField = document.getElementById('duration_seconds');
@@ -266,9 +276,10 @@ let itemIndex = {{ count($repair->items) }};
     const completedDateField = document.getElementById('completed_at');
     const completedDateHidden = document.getElementById('completed_at_hidden');
     const timerIndicator = document.getElementById('timer-indicator');
+    const createdAtField = document.getElementById('created_at');
     
     // Store PHP server timestamps in milliseconds
-    let startTime = {{ $repair->started_at ? 
+    let startTime = {{ ($repair->status === 'in_progress' && $repair->started_at) ? 
         $repair->started_at->timestamp * 1000 : 
         "null" }};
     
@@ -277,7 +288,7 @@ let itemIndex = {{ count($repair->items) }};
         "null" }};
     
     // Flag to track if timer is running
-    let isTimerRunning = {{ $repair->status == 'in_progress' ? 'true' : 'false' }};
+    let isTimerRunning = {{ $repair->status === 'in_progress' ? 'true' : 'false' }};
     let timerInterval = null;
     
     console.log("TIMER INIT - Status:", "{{ $repair->status }}", "StartTime:", startTime);
@@ -316,8 +327,9 @@ let itemIndex = {{ count($repair->items) }};
     
     // Update duration display with real-time counting
     function updateDuration() {
-        if (!startTime) {
-            durationField.value = "Not started";
+        if (!startTime || statusSelect.value === 'pending') {
+            durationField.value = 'Not started';
+            durationSecondsField.value = '0';
             return;
         }
         
@@ -350,9 +362,8 @@ let itemIndex = {{ count($repair->items) }};
         // Show the timer indicator
         timerIndicator.classList.remove('hidden');
         
-        // If no start time (new repair), set it to now
+        // Only set new start time if there isn't one already (changing from pending to in_progress)
         if (!startTime) {
-            // Get current time
             const now = new Date();
             startTime = now.getTime();
             
@@ -404,6 +415,32 @@ let itemIndex = {{ count($repair->items) }};
         durationField.style.borderColor = "";
     }
     
+    // Reset the timer
+    function resetTimer() {
+        console.log("RESET TIMER called");
+        // Reset all timer-related variables
+        startTime = null;
+        completedTime = null;
+        isTimerRunning = false;
+        
+        // Clear the fields
+        startDateField.value = '';
+        startDateHidden.value = '';
+        completedDateField.value = '';
+        completedDateHidden.value = '';
+        durationField.value = 'Not started';
+        durationSecondsField.value = '0';
+        
+        // Stop any running timer
+        clearInterval(timerInterval);
+        
+        // Hide the timer indicator
+        timerIndicator.classList.add('hidden');
+        
+        // Reset border color
+        durationField.style.borderColor = "";
+    }
+    
     // Format a date for datetime-local input (YYYY-MM-DDTHH:MM)
     function formatDateForInput(date) {
         const year = date.getFullYear();
@@ -416,56 +453,7 @@ let itemIndex = {{ count($repair->items) }};
     }
     
     // Handle status changes
-    statusSelect.addEventListener('change', function() {
-        const currentStatus = this.value;
-        
-        if (currentStatus === 'in_progress') {
-            // When changed to in progress, start the timer
-            startTimer();
-            
-            // Make completion date field readonly
-            if (completedDateField) {
-                completedDateField.value = '';
-                completedDateField.readOnly = true;
-                if (completedDateHidden) {
-                    completedDateHidden.value = '';
-                }
-            }
-        } else if (currentStatus === 'completed') {
-            // When status is changed to completed, stop the timer
-            stopTimer();
-            
-            // If no completion date set, set it to now
-            if (completedDateField && !completedDateField.value) {
-                const now = new Date();
-                const formattedDate = formatDateForInput(now);
-                completedDateField.value = formattedDate;
-                completedDateField.readOnly = true;
-                
-                if (completedDateHidden) {
-                    completedDateHidden.value = now.toISOString().slice(0, 19).replace('T', ' ');
-                }
-            }
-        } else {
-            // For other statuses (pending, cancelled), stop timer
-            stopTimer();
-            
-            if (currentStatus === 'pending') {
-                // For pending, clear the completed date
-                if (completedDateField) {
-                    completedDateField.value = '';
-                    completedDateField.readOnly = false;
-                }
-                if (completedDateHidden) {
-                    completedDateHidden.value = '';
-                }
-            }
-        }
-    });
-    
-    // Initialize based on current status
     if (statusSelect) {
-        // Watch for status changes
         statusSelect.addEventListener('change', function() {
             const currentStatus = this.value;
             
@@ -496,42 +484,48 @@ let itemIndex = {{ count($repair->items) }};
                         completedDateHidden.value = now.toISOString().slice(0, 19).replace('T', ' ');
                     }
                 }
-            } else {
-                // For other statuses (pending, cancelled), stop timer
-                stopTimer();
+            } else if (currentStatus === 'pending') {
+                // For pending status, reset everything
+                resetTimer();
                 
-                if (currentStatus === 'pending') {
-                    // For pending, clear the completed date
-                    if (completedDateField) {
-                        completedDateField.value = '';
-                        completedDateField.readOnly = false;
-                    }
-                    if (completedDateHidden) {
-                        completedDateHidden.value = '';
-                    }
+                // Make completion date field editable
+                if (completedDateField) {
+                    completedDateField.readOnly = false;
                 }
+            } else {
+                // For other statuses (cancelled), just stop the timer
+                stopTimer();
             }
         });
         
-        // Initialize the timer based on the current status
-        if (statusSelect.value === 'in_progress') {
+        // Initialize based on current status and start time
+        const currentStatus = statusSelect.value;
+        let initialStartTime = {{ ($repair->status === 'in_progress' && $repair->started_at) ? 
+            $repair->started_at->timestamp * 1000 : 
+            "null" }};
+
+        if (currentStatus === 'in_progress') {
+            // If repair is already in progress, use the existing start time
+            startTime = initialStartTime;
             startTimer();
         } else {
-            // Just update the duration display once
-            updateDuration();
+            // For all other statuses, reset the timer
+            resetTimer();
         }
     }
     
-    // Make the timer indicator visible if the timer should be running
-    if (isTimerRunning) {
-        timerIndicator.classList.remove('hidden');
-        pulseAnimation();
+    // Force an initial update based on current status
+    if (statusSelect.value === 'pending') {
+        resetTimer();
+    } else if (statusSelect.value === 'in_progress') {
+        // Don't call startTimer() again, as it was already called above if needed
+        updateDuration();
+    } else {
+        updateDuration();
     }
     
-    // Force an initial update
-    updateDuration();
     console.log("Timer initialization complete. Status:", statusSelect.value, "Running:", isTimerRunning);
-})(); // Self-executing function to run immediately
+})();
 
 // Other existing functions
 function addRepairItem() {

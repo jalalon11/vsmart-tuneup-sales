@@ -8,7 +8,7 @@
             <div class="mb-6">
                 <div class="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
                     <div class="flex items-center space-x-4">
-                        <a href="{{ url()->previous() }}" class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg transition duration-150 ease-in-out">
+                        <a href="{{ route('dashboard') }}" class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg transition duration-150 ease-in-out">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                             </svg>
@@ -216,39 +216,18 @@ if (typeof Chart === 'undefined') {
 
 <!-- Main report functionality -->
 <script>
-// Make sure the print layout is hidden on load
-document.addEventListener('DOMContentLoaded', function() {
-    hideReportPrintLayout();
-});
-
-// Also when coming back via browser navigation
-window.addEventListener('pageshow', function(event) {
-    hideReportPrintLayout();
-});
-
-// Function to hide the print layout
-function hideReportPrintLayout() {
-    var printElements = document.getElementsByClassName('print-only');
-    for (var i = 0; i < printElements.length; i++) {
-        printElements[i].style.display = 'none';
-    }
+// Remove the custom print override and simplify the print function
+function handlePrint() {
+    window.print();
 }
 
-// Original print function override
-var originalPrint = window.print;
-window.print = function() {
-    // Show the print layout
-    var printElements = document.getElementsByClassName('print-only');
-    for (var i = 0; i < printElements.length; i++) {
-        printElements[i].style.display = 'block';
+// Update onclick handler in the print button
+document.addEventListener('DOMContentLoaded', function() {
+    const printButton = document.querySelector('button[onclick="window.print()"]');
+    if (printButton) {
+        printButton.setAttribute('onclick', 'handlePrint()');
     }
-    
-    // Call the original print function
-    originalPrint();
-    
-    // Hide the print layout again after printing
-    setTimeout(hideReportPrintLayout, 500);
-};
+});
 
 // Excel export function
 function exportToExcel() {
@@ -409,64 +388,82 @@ if (typeof Chart !== 'undefined') {
 
 @push('styles')
 <style>
+    /* Hide print-only content when not printing */
+    .print-only {
+        display: none;
+    }
+
     @media print {
-        /* Hide everything except print layout */
-        .no-print, .space-y-6, nav, header, footer {
+        /* Hide screen-only elements */
+        .no-print {
             display: none !important;
         }
+
+        /* Show print-only elements */
         .print-only {
             display: block !important;
         }
-        
-        /* Print page setup */
-        @page {
-            size: landscape;
-            margin: 0.5cm;
-        }
-        
+
+        /* Reset body styles for printing */
         body {
             padding: 0 !important;
             margin: 0 !important;
-            font-family: 'Courier New', monospace;
             background: white !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+            font-size: 10pt;
+            line-height: 1.3;
+        }
+
+        /* Hide navigation and other UI elements */
+        nav, header, footer, .space-y-6:not(.print-only) {
+            display: none !important;
         }
 
         /* Print layout styling */
         .print-layout {
+            display: block !important;
             width: 100%;
-            padding: 20px;
+            padding: 15px;
             background: white;
+            margin: 0 auto;
+        }
+
+        /* Page settings */
+        @page {
+            size: landscape;
+            margin: 1cm;
         }
 
         .print-header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             padding-bottom: 10px;
-            border-bottom: 2px solid #000;
+            border-bottom: 1px solid #000;
         }
 
         .print-header h1 {
-            font-size: 24px;
+            font-size: 18pt;
             font-weight: bold;
             margin: 0 0 5px 0;
+            letter-spacing: 0.5px;
         }
 
         .print-header p {
             margin: 2px 0;
-            font-size: 14px;
+            font-size: 10pt;
         }
 
         .print-section {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .print-section h2 {
-            font-size: 16px;
+            font-size: 12pt;
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .print-table {
@@ -477,43 +474,82 @@ if (typeof Chart !== 'undefined') {
 
         .print-table th {
             border-bottom: 1px solid #000;
-            padding: 8px;
+            padding: 6px 8px;
             text-align: left;
-            font-size: 12px;
+            font-size: 9pt;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
         }
 
         .print-table td {
-            padding: 6px 8px;
-            border-bottom: 1px dotted #ccc;
-            font-size: 12px;
+            padding: 4px 8px;
+            border-bottom: 1px solid #ddd;
+            font-size: 9pt;
+            line-height: 1.2;
         }
 
         .print-table td:not(:first-child) {
             text-align: right;
         }
 
-        .print-footer {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 10px;
-            border-top: 2px solid #000;
-        }
-
-        .print-footer p {
-            margin: 5px 0;
-            font-size: 12px;
-        }
-
         .print-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 40px;
+            gap: 20px;
+            margin-bottom: 15px;
         }
-    }
 
-    .print-only {
-        display: none;
+        .print-footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #000;
+        }
+
+        .print-footer p {
+            margin: 2px 0;
+            font-size: 8pt;
+            color: #666;
+        }
+
+        /* Improve table data alignment and spacing */
+        .print-table td[data-label="Total Sales"],
+        .print-table td[data-label="Average Sale"],
+        .print-table td[data-label="% of Total"] {
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum";
+            padding-right: 8px;
+            white-space: nowrap;
+        }
+
+        /* Add subtle alternating row colors */
+        .print-table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        /* Make summary tables more compact */
+        .print-section .print-table tr td {
+            padding: 3px 8px;
+        }
+
+        /* Ensure all numerical values are properly aligned */
+        .print-table td:nth-child(2),
+        .print-table td:nth-child(3),
+        .print-table td:nth-child(4),
+        .print-table td:nth-child(5) {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        /* Prevent text wrapping in critical columns */
+        .print-table th,
+        .print-table td:first-child {
+            white-space: nowrap;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     }
 </style>
 @endpush

@@ -241,48 +241,54 @@
 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
     <div class="p-6 text-gray-900 dark:text-gray-100">
         <!-- Header Section -->
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-            <h1 class="text-2xl font-bold animated-title flex items-center">
-            <img class="h-8 w-8 text-blue-500 mr-3" src="./img/mobile.png" alt="Mobile Icon">
-                Manage Repairs
-            </h1>
-            
-            <div class="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto">
-                <!-- Enhanced Search Form -->
-                <form id="searchForm" action="{{ route('repairs.index') }}" method="GET" class="flex items-center w-full md:w-auto relative">
-                    <div class="relative flex-1 md:w-96">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-18 0 7 7 0 0118 0z"></path>
-                            </svg>
-                        </div>
-                        <input type="text" 
-                               id="searchInput"
-                               name="search" 
-                               value="{{ request('search') }}" 
-                               placeholder="Search by customer name, phone, device..." 
-                               class="block w-full pl-10 pr-12 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all duration-200">
-                        @if(request('search'))
-                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                                <button type="button" id="clearSearch" class="text-gray-400 hover:text-gray-500 dark:text-gray-400 dark:hover:text-gray-300">
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                        @endif
-                    </div>
-                </form>
+        <div class="mb-6">
+            <div class="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-2xl font-bold animated-title flex items-center">
+                        <img class="h-8 w-8 text-blue-500 mr-3" src="{{ asset('img/mobile.png') }}" alt="Mobile Icon">
+                        Manage Repairs
+                    </h1>
+                </div>
                 
-                <!-- New Repair Button -->
-                <button type="button" 
-                    @click="$dispatch('open-repair-modal')"
-                    class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 btn-hover-effect whitespace-nowrap">
-                    <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    New Repair
-                </button>
+                <div class="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto">
+                    <!-- Enhanced Search Form -->
+                    <form id="searchForm" action="{{ route('repairs.index') }}" method="GET" class="flex items-center w-full md:w-auto relative">
+                        <div class="relative flex-1 md:w-96">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <input type="text" 
+                                   id="searchInput"
+                                   name="search" 
+                                   value="{{ request('search') }}" 
+                                   placeholder="Search by customer name, phone, device..." 
+                                   class="block w-full pl-10 pr-12 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all duration-200">
+                            @if(request('search'))
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                    <button type="button" 
+                                            onclick="clearSearch()" 
+                                            class="text-gray-400 hover:text-gray-500 dark:text-gray-400 dark:hover:text-gray-300 focus:outline-none">
+                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            @endif
+                        </div>
+                    </form>
+                    
+                    <!-- New Repair Button -->
+                    <button type="button" 
+                        @click="$dispatch('open-repair-modal')"
+                        class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 btn-hover-effect whitespace-nowrap">
+                        <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        New Repair
+                    </button>
+                </div>
             </div>
         </div>
         
@@ -1294,6 +1300,26 @@
 
     // Clean up when navigating away
     document.addEventListener('turbo:before-cache', cleanupRepairForm);
+
+    // Add this to your existing JavaScript
+    function clearSearch() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('searchForm').submit();
+    }
+
+    // Initialize search functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const searchForm = document.getElementById('searchForm');
+
+        // Submit form on Enter key
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchForm.submit();
+            }
+        });
+    });
 </script>
 @endpush
 @endsection

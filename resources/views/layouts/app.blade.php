@@ -194,6 +194,11 @@
                             color 0.5s ease !important;
             }
 
+            /* Hide elements with x-cloak */
+            [x-cloak] {
+                display: none !important;
+            }
+
             /* Preserve button colors during transition */
             .dark-transition button.bg-blue-600 {
                 transition: transform 0.3s ease,

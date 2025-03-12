@@ -8,7 +8,7 @@
             <div class="flex items-center space-x-3">
                 <div class="bg-blue-100 dark:bg-blue-900 p-2 rounded-lg">
                     <svg class="h-8 w-8 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2M7 7h10"></path>
                     </svg>
                 </div>
                 <div>
@@ -71,30 +71,43 @@
                                         <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                         </svg>
+                                        Completed
                                     @elseif($repair->status === 'pending')
                                         <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                         </svg>
+                                        Pending
                                     @elseif($repair->status === 'in_progress')
                                         <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                         </svg>
+                                        In Progress
                                     @elseif($repair->status === 'cancelled')
                                         <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                         </svg>
+                                        Cancelled
                                     @endif
-                                    {{ ucfirst($repair->status) }}
                                 </span>
                             </div>
                             
                             <div class="border-t dark:border-gray-600 pt-4 space-y-3">
-                                @if($repair->started_at)
+                                <!-- Date Received -->
+                                <div class="flex items-center text-sm">
+                                    <svg class="h-5 w-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    <span class="text-gray-600 dark:text-gray-300">
+                                        Received: {{ $repair->created_at->timezone('Asia/Manila')->format('F j, Y g:i A') }} PHT
+                                    </span>
+                                </div>
+                                
+                                @if($repair->started_at && $repair->status !== 'pending')
                                     <div class="flex items-center text-sm">
                                         <svg class="h-5 w-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                         </svg>
-                                        <span class="text-gray-600 dark:text-gray-300">Started: {{ $repair->started_at->format('F j, Y') }}</span>
+                                        <span class="text-gray-600 dark:text-gray-300">Started: {{ $repair->started_at->timezone('Asia/Manila')->format('F j, Y g:i A') }} PHT</span>
                                     </div>
                                 @endif
                                 
@@ -103,11 +116,11 @@
                                         <svg class="h-5 w-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                         </svg>
-                                        <span class="text-gray-600 dark:text-gray-300">Completed: {{ $repair->completed_at->format('F j, Y') }}</span>
+                                        <span class="text-gray-600 dark:text-gray-300">Completed: {{ $repair->completed_at->timezone('Asia/Manila')->format('F j, Y g:i A') }} PHT</span>
                                     </div>
                                 @endif
                                 
-                                @if($repair->started_at && $repair->completed_at)
+                                @if($repair->started_at && $repair->completed_at && $repair->status !== 'pending')
                                     <div class="flex items-center text-sm">
                                         <svg class="h-5 w-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>

@@ -86,7 +86,7 @@
                                 <div class="text-gray-500 dark:text-gray-400 truncate">{{ Auth::user()->email }}</div>
                             </div>
 
-                            <x-dropdown-link :href="route('user.profile')" class="hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <x-dropdown-link :href="route('profile.show')" class="hover:bg-gray-100 dark:hover:bg-gray-600">
                                 <div class="flex items-center">
                                     <svg class="mr-2 h-5 w-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -153,7 +153,7 @@
             </div>
 
             <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('user.profile')">
+                <x-responsive-nav-link :href="route('profile.show')" :active="request()->routeIs('profile.show')">
                     {{ __('My Profile') }}
                 </x-responsive-nav-link>
 
