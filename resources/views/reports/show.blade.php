@@ -862,12 +862,12 @@
         display: none !important;
     }
 
-    /* Period selection styles */
-    .date-input-container {
-        min-width: 150px;
-    }
-
     @media print {
+        /* Base print reset */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        
         /* Hide screen-only elements */
         nav, header, footer, .space-y-6:not(.print-only) {
             display: none !important;
@@ -885,137 +885,244 @@
             background: white !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
-            font-size: 8pt;
-            line-height: 1.2;
-        }
-
-        /* Hide navigation and other UI elements */
-        nav, header, footer, .space-y-6:not(.print-only) {
-            display: none !important;
-        }
-
-        /* Print layout styling */
-        .print-layout {
-            display: block !important;
-            width: 100%;
-            padding: 8px;
-            background: white;
-            margin: 0 auto;
+            font-family: 'Arial', sans-serif;
+            font-size: 9pt;
+            line-height: 1.4;
+            color: #1e293b;
         }
 
         /* Page settings */
         @page {
             size: landscape;
-            margin: 0.5cm;
+            margin: 1cm;
         }
 
+        /* Print layout styling */
+        .print-layout {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+        }
+
+        /* Header */
         .print-header {
             text-align: center;
-            margin-bottom: 8px;
-            padding-bottom: 4px;
-            border-bottom: 1px solid #000;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #2563eb;
         }
 
         .print-header h1 {
-            font-size: 14pt;
-            font-weight: bold;
-            margin: 0 0 2px 0;
-            letter-spacing: 0.5px;
+            font-size: 18pt;
+            font-weight: 700;
+            margin: 0 0 4px 0;
+            color: #1e3a8a;
         }
 
         .print-header p {
-            margin: 1px 0;
+            margin: 2px 0;
+            font-size: 9pt;
+            color: #475569;
+        }
+
+        /* Report info bar */
+        .print-metadata {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+            color: #64748b;
             font-size: 8pt;
-            line-height: 1.2;
         }
 
-        .print-section {
-            margin-bottom: 8px;
+        /* KPI Cards */
+        .print-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
         }
 
-        .print-section h2 {
-            font-size: 10pt;
-            font-weight: bold;
-            margin-bottom: 4px;
+        .print-kpi-card {
+            padding: 12px 15px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+        }
+
+        .print-kpi-card h3 {
+            font-size: 8pt;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            margin: 0 0 8px 0;
+            color: #64748b;
+        }
+
+        .print-kpi-card .value {
+            font-size: 14pt;
+            font-weight: 700;
+            margin: 0;
+            color: #1e293b;
+        }
+
+        .print-kpi-card .caption {
+            font-size: 8pt;
+            color: #64748b;
+            margin: 4px 0 0 0;
+        }
+
+        /* Section styling */
+        .print-section {
+            margin-bottom: 25px;
+        }
+
+        .print-section-header {
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .print-section-header h2 {
+            font-size: 11pt;
+            font-weight: 600;
+            margin: 0;
+            color: #1e293b;
+        }
+
+        /* Tables */
+        .print-table-wrapper {
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
         }
 
         .print-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 6px;
+            font-size: 8.5pt;
+        }
+
+        .print-table thead {
+            background-color: #f1f5f9;
         }
 
         .print-table th {
-            border-bottom: 1px solid #000;
-            padding: 3px 4px;
+            padding: 8px 12px;
             text-align: left;
-            font-size: 7.5pt;
+            font-weight: 600;
+            color: #475569;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 8pt;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            white-space: nowrap;
         }
 
         .print-table td {
-            padding: 2px 4px;
-            border-bottom: 1px solid #ddd;
-            font-size: 7.5pt;
-            line-height: 1.2;
+            padding: 6px 12px;
+            border-bottom: 1px solid #f1f5f9;
         }
 
+        .print-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .print-table tbody tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        /* Data styling */
+        .print-table th:not(:first-child),
         .print-table td:not(:first-child) {
             text-align: right;
         }
 
-        .print-table tr:nth-child(even) {
-            background-color: #f9f9f9;
+        .print-table td:first-child {
+            font-weight: 500;
+            color: #334155;
         }
 
-        .print-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-            margin-bottom: 8px;
+        .print-table .number {
+            font-feature-settings: "tnum";
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
         }
 
+        .print-table .currency {
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        .print-table .percentage {
+            color:rgb(235, 37, 37);
+            font-weight: 500;
+        }
+
+        /* Footer */
         .print-footer {
-            text-align: center;
-            margin-top: 6px;
-            padding-top: 3px;
-            border-top: 1px solid #ddd;
+            margin-top: 30px;
+            padding-top: 10px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            font-size: 7.5pt;
+            color: #64748b;
         }
 
         .print-footer p {
-            margin: 1px 0;
-            font-size: 6pt;
-            color: #666;
-            line-height: 1.2;
+            margin: 0;
         }
 
-        /* Ensure all numerical values are properly aligned */
-        .print-table td:nth-child(2),
-        .print-table td:nth-child(3),
-        .print-table td:nth-child(4),
-        .print-table td:nth-child(5) {
+        .print-footer .confidential {
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* Summary Table Specific Styles */
+        .summary-table {
+            margin-bottom: 30px;
+        }
+
+        .summary-table th {
+            background-color: #f8fafc !important;
+            color: #1e293b !important;
+            font-size: 9pt;
+            padding: 10px 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .summary-table td {
+            padding: 8px 15px;
+            vertical-align: middle;
+        }
+
+        .summary-table .metric-name {
+            font-weight: 600;
+            color: #1e293b;
+            width: 25%;
+        }
+
+        .summary-table .metric-value {
+            font-weight: 700;
+            color:rgb(235, 37, 37);
+            width: 25%;
             text-align: right;
-            white-space: nowrap;
         }
 
-        /* Prevent text wrapping in critical columns */
-        .print-table th:first-child,
-        .print-table td:first-child {
-            max-width: 150px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+        .summary-table .metric-detail {
+            color: #64748b;
+            font-size: 8.5pt;
+            padding-left: 20px;
         }
-        
-        /* Force consistent column widths */
-        .print-table th:not(:first-child),
-        .print-table td:not(:first-child) {
-            width: 1%;
-            white-space: nowrap;
+
+        .summary-table tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .summary-table .currency {
+            font-feature-settings: "tnum";
+            font-variant-numeric: tabular-nums;
         }
     }
 </style>
@@ -1027,105 +1134,125 @@
         <!-- Header -->
         <div class="print-header">
             <h1>VSMART TUNE UP</h1>
-            <p>Sales Report - {{ $periodLabel }}</p>
-            <p>Generated: {{ now()->timezone('Asia/Manila')->format('F d, Y h:i A') }} PHT</p>
+            <p>Sales Performance Report - {{ $periodLabel }}</p>
         </div>
 
-        <!-- Summary Section -->
+        <!-- Report Info -->
+        <div class="print-metadata">
+            <div>Report ID: SR-{{ now()->format('Ymd') }}-{{ rand(1000, 9999) }}</div>
+            <div>Generated: {{ now()->timezone('Asia/Manila')->format('F d, Y h:i A') }} PHT</div>
+        </div>
+
+        <!-- KPI Summary -->
         <div class="print-section">
-            <div class="print-grid">
-                <div>
-                    <h2>Summary</h2>
-                    <table class="print-table">
+            <div class="print-section-header">
+                <h2>Performance Summary</h2>
+            </div>
+            <div class="print-table-wrapper">
+                <table class="print-table summary-table">
+                    <thead>
                         <tr>
-                            <td>Total Sales:</td>
-                            <td><strong>₱{{ number_format($totalSales, 2) }}</strong></td>
+                            <th>Metric</th>
+                            <th>Value</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="metric-name">Total Sales Revenue</td>
+                            <td class="metric-value currency">₱{{ number_format($totalSales, 2) }}</td>
+                            <td class="metric-detail">Total revenue for the period</td>
                         </tr>
                         <tr>
-                            <td>Total Repairs:</td>
-                            <td><strong>{{ $totalRepairs }}</strong></td>
+                            <td class="metric-name">Completed Repairs</td>
+                            <td class="metric-value">{{ number_format($totalRepairs) }}</td>
+                            <td class="metric-detail">Total number of repair jobs</td>
                         </tr>
                         <tr>
-                            <td>Average per Repair:</td>
-                            <td><strong>₱{{ number_format($totalRepairs > 0 ? $totalSales / $totalRepairs : 0, 2) }}</strong></td>
-                        </tr>
-                    </table>
-                </div>
-                <div>
-                    <h2>Top Performers</h2>
-                    <table class="print-table">
-                        <tr>
-                            <td>Top Service:</td>
-                            <td><strong>{{ array_key_first($serviceBreakdown) ?? 'N/A' }}</strong></td>
+                            <td class="metric-name">Average Revenue per Repair</td>
+                            <td class="metric-value currency">₱{{ number_format($totalRepairs > 0 ? $totalSales / $totalRepairs : 0, 2) }}</td>
+                            <td class="metric-detail">Average revenue generated per repair job</td>
                         </tr>
                         <tr>
-                            <td>Top Customer:</td>
-                            <td><strong>{{ array_key_first($customerBreakdown) ?? 'N/A' }}</strong></td>
+                            <td class="metric-name">Most Requested Service</td>
+                            <td class="metric-value">{{ Str::limit(array_key_first($serviceBreakdown) ?? 'N/A', 35) }}</td>
+                            <td class="metric-detail">{{ isset($serviceBreakdown[array_key_first($serviceBreakdown)]) ? $serviceBreakdown[array_key_first($serviceBreakdown)]['count'] . ' repairs completed' : 'No data available' }}</td>
                         </tr>
-                    </table>
-                </div>
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <!-- Services & Customers Section (side by side) -->
+        <!-- Services Breakdown -->
         <div class="print-section">
-            <div class="print-grid">
-                <!-- Services Breakdown -->
-                <div>
-                    <h2>Services Breakdown</h2>
-                    <table class="print-table">
-                        <thead>
-                            <tr>
-                                <th>Service</th>
-                                <th>Count</th>
-                                <th>Total</th>
-                                <th>%</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($serviceBreakdown as $service => $data)
-                            <tr>
-                                <td>{{ Str::limit($service, 20) }}</td>
-                                <td>{{ number_format($data['count']) }}</td>
-                                <td>₱{{ number_format($data['total'], 2) }}</td>
-                                <td>{{ number_format(($data['total'] / $totalSales) * 100, 1) }}%</td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+            <div class="print-section-header">
+                <h2>Services Performance</h2>
+            </div>
+            <div class="print-table-wrapper">
+                <table class="print-table">
+                    <thead>
+                        <tr>
+                            <th>Service Type</th>
+                            <th>Jobs</th>
+                            <th>Revenue</th>
+                            <th>Average</th>
+                            <th>Share</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($serviceBreakdown as $service => $data)
+                        <tr>
+                            <td>{{ Str::limit($service, 35) }}</td>
+                            <td class="number">{{ number_format($data['count']) }}</td>
+                            <td class="number currency">₱{{ number_format($data['total'], 2) }}</td>
+                            <td class="number currency">₱{{ number_format($data['count'] > 0 ? $data['total'] / $data['count'] : 0, 2) }}</td>
+                            <td class="number percentage">{{ number_format(($data['total'] / $totalSales) * 100, 1) }}%</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-                <!-- Customers Breakdown -->
-                <div>
-                    <h2>Customers Breakdown</h2>
-                    <table class="print-table">
-                        <thead>
-                            <tr>
-                                <th>Customer</th>
-                                <th>Repairs</th>
-                                <th>Total</th>
-                                <th>%</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($customerBreakdown as $customer => $data)
-                            <tr>
-                                <td>{{ Str::limit($customer, 20) }}</td>
-                                <td>{{ number_format($data['count']) }}</td>
-                                <td>₱{{ number_format($data['total'], 2) }}</td>
-                                <td>{{ number_format(($data['total'] / $totalSales) * 100, 1) }}%</td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+        <!-- Customer Analysis -->
+        <div class="print-section">
+            <div class="print-section-header">
+                <h2>Customer Analysis</h2>
+            </div>
+            <div class="print-table-wrapper">
+                <table class="print-table">
+                    <thead>
+                        <tr>
+                            <th>Customer Name</th>
+                            <th>Total Jobs</th>
+                            <th>Total Revenue</th>
+                            <th>Average Spend</th>
+                            <th>Revenue Share</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($customerBreakdown as $customer => $data)
+                        <tr>
+                            <td>{{ Str::limit($customer, 35) }}</td>
+                            <td class="number">{{ number_format($data['count']) }}</td>
+                            <td class="number currency">₱{{ number_format($data['total'], 2) }}</td>
+                            <td class="number currency">₱{{ number_format($data['count'] > 0 ? $data['total'] / $data['count'] : 0, 2) }}</td>
+                            <td class="number percentage">{{ number_format(($data['total'] / $totalSales) * 100, 1) }}%</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
 
         <!-- Footer -->
         <div class="print-footer">
-            <p>Report generated by VSmart SMS</p>
-            <p>{{ now()->timezone('Asia/Manila')->format('Y-m-d H:i:s') }} PHT</p>
+            <div>
+                <p>VSMART SMS © {{ now()->format('Y') }} | Financial Report</p>
+            </div>
+            <div class="confidential">
+                <p>CONFIDENTIAL AND PROPRIETARY</p>
+            </div>
         </div>
     </div>
 </div>
