@@ -23,10 +23,6 @@ class CustomerController extends Controller
                 $query->whereHas('repairs', function ($q) {
                     $q->where('status', 'pending');
                 });
-            }])
-            ->with(['devices' => function ($query) {
-                $query->with(['deviceModel'])
-                    ->latest();
             }]);
 
         // Handle search
@@ -105,15 +101,24 @@ class CustomerController extends Controller
     {
         if (request()->ajax()) {
             return response()->json([
-                'customer' => $customer->load('devices')
+                'customer' => $customer->load(['devices' => function($query) {
+                    $query->with(['deviceModel', 'repairs' => function($q) {
+                        $q->select('repairs.*')
+                          ->latest('repairs.created_at')
+                          ->with('items.service');
+                    }])
+                    ->latest('devices.created_at');
+                }])
             ]);
         }
 
         $devices = $customer->devices()
-            ->with(['repairs' => function ($query) {
-                $query->latest();
+            ->with(['deviceModel', 'repairs' => function($q) {
+                $q->select('repairs.*')
+                  ->latest('repairs.created_at')
+                  ->with('items.service');
             }])
-            ->latest()
+            ->latest('devices.created_at')
             ->paginate(10);
 
         return ViewFacade::make('customers.show', compact('customer', 'devices'));
@@ -226,30 +231,120 @@ class CustomerController extends Controller
 
     public function addDevice(Request $request, Customer $customer)
     {
-        $validated = $request->validate([
-            'brand' => 'required|string|max:255',
-            'model' => 'required|string|max:255',
-        ]);
-
-        $device = $customer->devices()->create([
-            'brand' => $validated['brand'],
-            'model' => $validated['model'],
-            'status' => 'received',
-        ]);
-
-        if ($request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Device added successfully',
-                'device' => $device
+        try {
+            Log::info('Adding device request received', [
+                'customer_id' => $customer->id,
+                'request_data' => $request->all()
             ]);
-        }
 
-        return redirect()->back()->with('success', 'Device added successfully');
+            $validated = $request->validate([
+                'brand' => 'required|string|max:255',
+                'model' => 'required|string|max:255',
+                'serial_number' => 'nullable|string|max:255'
+            ]);
+
+            $device = $customer->devices()->create([
+                'brand' => $validated['brand'],
+                'model' => $validated['model'],
+                'serial_number' => $validated['serial_number'] ?? null,
+                'status' => 'received'
+            ]);
+
+            Log::info('Device created successfully', [
+                'device_id' => $device->id,
+                'customer_id' => $customer->id
+            ]);
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Device added successfully',
+                    'device' => $device->load(['repairs' => function($query) {
+                        $query->select('repairs.id', 'repairs.status', 'repairs.created_at')
+                            ->latest('repairs.created_at');
+                    }])
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Device added successfully');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation error while adding device', [
+                'customer_id' => $customer->id,
+                'errors' => $e->errors()
+            ]);
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'message' => 'The given data was invalid.',
+                    'errors' => $e->errors()
+                ], 422);
+            }
+
+            return redirect()->back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            Log::error('Error adding device', [
+                'customer_id' => $customer->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'message' => 'Error adding device: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Error adding device');
+        }
     }
 
     public function getDevices(Customer $customer)
     {
-        return response()->json($customer->devices);
+        try {
+            Log::info('Fetching devices for customer', [
+                'customer_id' => $customer->id,
+                'customer_name' => $customer->name
+            ]);
+
+            $devices = $customer->devices()
+                ->with(['repairs' => function($query) {
+                    $query->select('repairs.id', 'repairs.status', 'repairs.created_at')
+                        ->latest('repairs.created_at');
+                }])
+                ->get()
+                ->map(function($device) {
+                    // Get the latest repair status
+                    $latestRepair = $device->repairs->first();
+                    $status = $latestRepair ? $latestRepair->status : 'no_repairs';
+                    
+                    return [
+                        'id' => $device->id,
+                        'brand' => $device->brand,
+                        'model' => $device->model,
+                        'status' => $status,
+                        'pending_repairs_count' => $device->repairs->where('status', 'pending')->count(),
+                        'in_progress_repairs_count' => $device->repairs->where('status', 'in_progress')->count(),
+                        'completed_repairs_count' => $device->repairs->where('status', 'completed')->count()
+                    ];
+                });
+
+            Log::info('Successfully fetched devices', [
+                'customer_id' => $customer->id,
+                'device_count' => $devices->count()
+            ]);
+
+            return response()->json($devices);
+        } catch (\Exception $e) {
+            Log::error('Error in getDevices method', [
+                'customer_id' => $customer->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'error' => 'Error loading devices',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 } 

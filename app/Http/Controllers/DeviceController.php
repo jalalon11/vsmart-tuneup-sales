@@ -89,4 +89,23 @@ class DeviceController extends Controller
         return redirect()->route('customers.show', $device->customer_id)
             ->with('success', 'Device updated successfully');
     }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Device $device)
+    {
+        if (request()->ajax()) {
+            // Load related data for API response
+            $device->load(['customer', 'repairs']);
+            
+            return response()->json([
+                'device' => $device
+            ]);
+        }
+
+        // For web form response
+        $customers = Customer::all();
+        return view('devices.edit', compact('device', 'customers'));
+    }
 } 

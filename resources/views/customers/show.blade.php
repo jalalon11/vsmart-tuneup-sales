@@ -68,13 +68,6 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="{{ route('customers.edit', $customer) }}" 
-                        class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                        <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                        </svg>
-                        Edit Customer
-                    </a>
                     <button type="button" id="addDeviceBtn" 
                         class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
                         <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -129,77 +122,12 @@
                                         <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                    @foreach($devices as $device)
-                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="flex items-center">
-                                                    <div class="flex-shrink-0 h-10 w-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-300">
-                                                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                                                        </svg>
-                                                    </div>
-                                                    <div class="ml-4">
-                                                        <div class="text-sm font-medium text-gray-900 dark:text-white">
-                                                            {{ $device->brand }} {{ $device->model }}
-                                                        </div>
-                                                        <div class="text-sm text-gray-500 dark:text-gray-400">
-                                                            Added {{ $device->created_at->format('M d, Y') }}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="text-sm text-gray-900 dark:text-white">
-                                                    {{ $device->serial_number ?? 'Not specified' }}
-                                                </div>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                    @if($device->status === 'received') bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300
-                                                    @elseif($device->status === 'in_repair') bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300
-                                                    @else bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-300
-                                                    @endif">
-                                                    {{ ucfirst(str_replace('_', ' ', $device->status)) }}
-                                                </span>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                @if($device->repairs->count() > 0)
-                                                    <div class="text-sm text-gray-900 dark:text-white">
-                                                        {{ $device->repairs->first()->created_at->format('M d, Y') }}
-                                                    </div>
-                                                    <div class="text-xs text-gray-500 dark:text-gray-400">
-                                                        {{ ucfirst($device->repairs->first()->status) }}
-                                                    </div>
-                                                @else
-                                                    <div class="text-sm text-gray-500 dark:text-gray-400">No repairs</div>
-                                                @endif
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <a href="#" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-3">
-                                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                                    </svg>
-                                                </a>
-                                                <a href="#" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-3">
-                                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                                    </svg>
-                                                </a>
-                                                <a href="#" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
-                                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                    </svg>
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    @endforeach
+                                <tbody id="deviceTableBody" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 </tbody>
                             </table>
                         </div>
                         <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-                            {{ $devices->links() }}
+                            <div id="devicePagination"></div>
                         </div>
                     </div>
                 @else
@@ -238,24 +166,27 @@
             <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div class="sm:flex sm:items-start">
                     <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4">Add a New Device</h3>
-                        <form id="addDeviceForm" action="{{ route('customers.add-device', $customer) }}" method="POST">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4" id="deviceModalTitle">Add a New Device</h3>
+                        
+                        <!-- Add Device Form -->
+                        <form id="addDeviceForm" class="device-form space-y-4">
                             @csrf
-                            <div class="grid grid-cols-1 gap-4">
+                            <input type="hidden" name="customer_id" value="{{ $customer->id }}">
+                            <div class="space-y-4">
                                 <div>
-                                    <label for="brand" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Brand</label>
-                                    <input type="text" name="brand" id="brand" required
-                                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <label for="add_brand" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Brand</label>
+                                    <input type="text" name="brand" id="add_brand" required
+                                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                                 </div>
                                 <div>
-                                    <label for="model" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Model</label>
-                                    <input type="text" name="model" id="model" required
-                                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <label for="add_model" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Model</label>
+                                    <input type="text" name="model" id="add_model" required
+                                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                                 </div>
                                 <div>
-                                    <label for="serial_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Serial Number</label>
-                                    <input type="text" name="serial_number" id="serial_number"
-                                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <label for="add_serial_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Serial Number</label>
+                                    <input type="text" name="serial_number" id="add_serial_number"
+                                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                                 </div>
                             </div>
                         </form>
@@ -263,7 +194,7 @@
                 </div>
             </div>
             <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button type="submit" form="addDeviceForm"
+                <button type="button" id="submitAddDeviceBtn"
                     class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
                     Add Device
                 </button>
@@ -279,38 +210,458 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Message handling functions
+        function showErrorMessage(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'mb-6 p-4 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-300 rounded-lg flex items-center animate-fade-in';
+            errorDiv.innerHTML = `
+                <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>${message}</span>
+            `;
+            
+            // Insert the new message at the top of the content area
+            const contentArea = document.querySelector('.p-8.text-gray-900');
+            contentArea.insertBefore(errorDiv, contentArea.firstChild.nextSibling);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+        }
+
+        function showSuccessMessage(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'mb-6 p-4 bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-300 rounded-lg flex items-center animate-fade-in';
+            successDiv.innerHTML = `
+                <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>${message}</span>
+            `;
+            
+            // Insert the new message at the top of the content area
+            const contentArea = document.querySelector('.p-8.text-gray-900');
+            contentArea.insertBefore(successDiv, contentArea.firstChild.nextSibling);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                successDiv.remove();
+            }, 5000);
+        }
+
+        // Modals
         const addDeviceModal = document.getElementById('addDeviceModal');
         const addDeviceBtn = document.getElementById('addDeviceBtn');
         const emptyAddDeviceBtn = document.getElementById('emptyAddDeviceBtn');
         const closeModalBtn = document.getElementById('closeModal');
+        const addDeviceForm = document.getElementById('addDeviceForm');
+        const deviceModalTitle = document.getElementById('deviceModalTitle');
+        const submitAddDeviceBtn = document.getElementById('submitAddDeviceBtn');
+        const deviceTableBody = document.getElementById('deviceTableBody');
+        const devicePagination = document.getElementById('devicePagination');
         
-        function openModal() {
+        let isSubmitting = false;
+        
+        // Function to load devices from the server
+        function loadDevices(page = 1) {
+            fetch(`/customers/{{ $customer->id }}/devices?page=${page}`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                deviceTableBody.innerHTML = '';
+                
+                if (data && data.length > 0) {
+                    data.forEach(device => {
+                        const row = document.createElement('tr');
+                        row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150';
+                        
+                        row.innerHTML = `
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-300">
+                                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900 dark:text-white">
+                                            ${device.brand} ${device.model}
+                                        </div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                                            Added ${new Date(device.created_at).toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900 dark:text-white">
+                                    ${device.serial_number || 'Not specified'}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    ${device.status === 'received' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300' :
+                                    device.status === 'in_repair' ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300' :
+                                    'bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-300'}">
+                                    ${device.status ? device.status.replace('_', ' ').charAt(0).toUpperCase() + device.status.slice(1) : 'N/A'}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                ${device.latest_repair ? `
+                                    <div class="text-sm text-gray-900 dark:text-white">
+                                        ${new Date(device.latest_repair.created_at).toLocaleDateString()}
+                                    </div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                                        ${device.latest_repair.status.charAt(0).toUpperCase() + device.latest_repair.status.slice(1)}
+                                    </div>
+                                ` : `
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">No repairs</div>
+                                `}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right">
+                                <div class="flex justify-end space-x-2">
+                                    <button data-device-id="${device.id}" class="edit-device-btn text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
+                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        `;
+                        
+                        deviceTableBody.appendChild(row);
+                    });
+                    
+                    // Add event listeners to edit buttons
+                    const editButtons = document.querySelectorAll('.edit-device-btn');
+                    editButtons.forEach(button => {
+                        button.addEventListener('click', function() {
+                            const deviceId = this.getAttribute('data-device-id');
+                            openEditModal(deviceId);
+                        });
+                    });
+                } else {
+                    deviceTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                No devices found
+                            </td>
+                        </tr>
+                    `;
+                }
+                
+                updatePagination(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                deviceTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                            Error loading devices. Please try again.
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        
+        function updatePagination(data) {
+            if (!data.meta) return;
+            
+            devicePagination.innerHTML = data.meta.total > data.meta.per_page ? `
+                <nav class="flex items-center justify-between">
+                    <div class="flex-1 flex justify-between">
+                        <button ${data.meta.current_page === 1 ? 'disabled' : ''} 
+                            onclick="loadDevices(${data.meta.current_page - 1})"
+                            class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 ${data.meta.current_page === 1 ? 'opacity-50 cursor-not-allowed' : ''}">
+                            Previous
+                        </button>
+                        <button ${data.meta.current_page === data.meta.last_page ? 'disabled' : ''}
+                            onclick="loadDevices(${data.meta.current_page + 1})"
+                            class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 ${data.meta.current_page === data.meta.last_page ? 'opacity-50 cursor-not-allowed' : ''}">
+                            Next
+                        </button>
+                    </div>
+                </nav>
+            ` : '';
+        }
+        
+        // Open edit modal with device data
+        function openEditModal(deviceId) {
+            fetch(`/devices/${deviceId}/edit`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to load device data');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const device = data.device;
+                
+                // Fill form fields
+                document.getElementById('edit-device-brand').value = device.brand || '';
+                document.getElementById('edit-device-model').value = device.model || '';
+                document.getElementById('edit-device-serial').value = device.serial_number || '';
+                
+                // Set form action and method
+                document.getElementById('editDeviceForm').action = `/devices/${deviceId}`;
+                
+                // Add method override for PUT request
+                let methodField = document.querySelector('#editDeviceForm input[name="_method"]');
+                if (!methodField) {
+                    methodField = document.createElement('input');
+                    methodField.type = 'hidden';
+                    methodField.name = '_method';
+                    methodField.value = 'PUT';
+                    document.getElementById('editDeviceForm').appendChild(methodField);
+                }
+                
+                // Show the modal
+                document.getElementById('editDeviceModal').classList.remove('hidden');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showErrorMessage('Error loading device details');
+            });
+        }
+        
+        // Close edit modal
+        function closeEditModal() {
+            document.getElementById('editDeviceModal').classList.add('hidden');
+        }
+        
+        // Add Device Modal functions
+        function openAddModal() {
+            addDeviceForm.reset();
+            deviceModalTitle.textContent = 'Add a New Device';
             addDeviceModal.classList.remove('hidden');
         }
         
         function closeModal() {
             addDeviceModal.classList.add('hidden');
+            addDeviceForm.reset();
+            isSubmitting = false;
         }
         
+        // Event handlers for add device modal
+        submitAddDeviceBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            
+            if (isSubmitting) return;
+            
+            const form = document.getElementById('addDeviceForm');
+            const formData = new FormData(form);
+            
+            // Validate required fields
+            const brand = formData.get('brand');
+            const model = formData.get('model');
+            
+            if (!brand || !model) {
+                showErrorMessage('Brand and model are required');
+                return;
+            }
+            
+            // Show loading state
+            isSubmitting = true;
+            this.disabled = true;
+            const originalButtonText = this.innerHTML;
+            this.innerHTML = '<svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Adding...';
+
+            try {
+                const token = document.querySelector('meta[name="csrf-token"]').content;
+                const response = await fetch(`/customers/{{ $customer->id }}/devices`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': token,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                });
+
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    if (response.status === 422) {
+                        const errors = Object.values(data.errors || {}).flat();
+                        throw new Error(errors.join('\n'));
+                    }
+                    throw new Error(data.message || 'Failed to add device');
+                }
+
+                // Clear form fields but keep modal open
+                form.reset();
+                
+                // Show success message and refresh devices list
+                showSuccessMessage(data.message || 'Device added successfully');
+                await loadDevices();
+                
+                // Focus on the brand input for the next device
+                document.getElementById('add_brand').focus();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showErrorMessage(error.message || 'An error occurred while adding the device');
+            } finally {
+                // Reset button state
+                isSubmitting = false;
+                this.disabled = false;
+                this.innerHTML = originalButtonText;
+            }
+        });
+        
+        // Form submission handlers
+        addDeviceForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
+        });
+        
+        // Edit form submission handler
+        document.getElementById('editDeviceForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch(this.action, {
+                method: 'POST', // Will be overridden by _method field
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to update device');
+                }
+                return response.json();
+            })
+            .then(data => {
+                closeEditModal();
+                showSuccessMessage(data.message || 'Device updated successfully');
+                loadDevices(); // Refresh device list
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showErrorMessage('Error updating device');
+            });
+        });
+        
+        // Button click handlers for edit modal
+        if (closeEditModalBtn) {
+            closeEditModalBtn.addEventListener('click', closeEditModal);
+        }
+        
+        if (cancelEditBtn) {
+            cancelEditBtn.addEventListener('click', closeEditModal);
+        }
+        
+        // Button click handlers for add modal
         if (addDeviceBtn) {
-            addDeviceBtn.addEventListener('click', openModal);
+            addDeviceBtn.addEventListener('click', openAddModal);
         }
         
         if (emptyAddDeviceBtn) {
-            emptyAddDeviceBtn.addEventListener('click', openModal);
+            emptyAddDeviceBtn.addEventListener('click', openAddModal);
         }
         
         if (closeModalBtn) {
             closeModalBtn.addEventListener('click', closeModal);
         }
         
-        // Close modal when clicking outside
+        // Close modals when clicking outside
         addDeviceModal.addEventListener('click', function(e) {
             if (e.target === addDeviceModal) {
                 closeModal();
             }
         });
+        
+        editDeviceModal.addEventListener('click', function(e) {
+            if (e.target === editDeviceModal) {
+                closeEditModal();
+            }
+        });
+        
+        // Make pagination function available globally
+        window.loadDevices = loadDevices;
+        
+        // Initial load of devices
+        loadDevices();
     });
 </script>
 @endpush
+
+<!-- Edit Device Modal -->
+<div id="editDeviceModal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Background overlay -->
+        <div class="fixed inset-0 bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75 transition-opacity" 
+            aria-hidden="true"></div>
+
+        <!-- Modal container -->
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+            id="editDeviceModalContent">
+            <form id="editDeviceForm" method="POST">
+                @csrf
+                <!-- Hidden method field will be added dynamically -->
+                <div class="bg-white dark:bg-gray-800 px-6 py-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Edit Device</h3>
+                        <button type="button" id="closeEditModalBtn" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+                            <span class="sr-only">Close</span>
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="edit-device-brand" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Brand</label>
+                            <input type="text" name="brand" id="edit-device-brand" required
+                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="edit-device-model" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Model</label>
+                            <input type="text" name="model" id="edit-device-model" required
+                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="edit-device-serial" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Serial Number</label>
+                            <input type="text" name="serial_number" id="edit-device-serial" 
+                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 px-6 py-3 flex justify-end space-x-3">
+                    <button type="button" id="cancelEditBtn"
+                        class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Update Device
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @endsection 

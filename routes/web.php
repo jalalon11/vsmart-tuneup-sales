@@ -56,8 +56,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/api/services', [ServiceController::class, 'index'])
         ->name('api.services')
         ->middleware('auth');
+
+    // Device routes
+    Route::get('/devices/{device}/edit', [DeviceController::class, 'edit'])->name('devices.edit');
+    Route::delete('/devices/{device}', [DeviceController::class, 'destroy'])->name('devices.destroy');
+    Route::put('/devices/{device}', [DeviceController::class, 'update'])->name('devices.update');
 });
 
 require __DIR__.'/auth.php';
 
-// pag blade ra dayon ahhahaa=== sajton diay lipat kos icon ahahha

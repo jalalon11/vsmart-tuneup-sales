@@ -305,7 +305,7 @@
                     <div class="flex items-center justify-between relative">
                         <div>
                             <p class="text-sm font-medium text-amber-600 dark:text-amber-400">Pending Repairs</p>
-                            <p class="text-3xl font-extrabold text-amber-700 dark:text-amber-300 mt-2 repair-stat-pending">{{ $repairs->where('status', 'pending')->count() }}</p>
+                            <p class="text-3xl font-extrabold text-amber-700 dark:text-amber-300 mt-2 repair-stat-pending">{{ App\Models\Repair::where('status', 'pending')->count() }}</p>
                             <div class="flex items-center mt-1 text-xs text-amber-600 dark:text-amber-400">
                                 <span class="inline-flex items-center">
                                     <svg class="h-4 w-4 mr-1 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -327,7 +327,7 @@
                                 <span class="text-xs font-medium text-amber-700 dark:text-amber-300">Oldest</span>
                                 <span class="text-lg font-bold text-amber-800 dark:text-amber-200">
                                     @php
-                                        $oldestPending = $repairs->where('status', 'pending')->sortBy('created_at')->first();
+                                        $oldestPending = App\Models\Repair::where('status', 'pending')->orderBy('created_at')->first();
                                         echo $oldestPending ? $oldestPending->created_at->format('M j') : 'None';
                                     @endphp
                                 </span>
@@ -336,7 +336,7 @@
                                 <span class="text-xs font-medium text-amber-700 dark:text-amber-300">Avg Time</span>
                                 <span class="text-lg font-bold text-amber-800 dark:text-amber-200">
                                     @php
-                                        $pendingRepairs = $repairs->where('status', 'pending');
+                                        $pendingRepairs = App\Models\Repair::where('status', 'pending')->get();
                                         $totalSeconds = 0;
                                         $count = 0;
                                         
@@ -373,7 +373,7 @@
                     <div class="flex items-center justify-between relative">
                         <div>
                             <p class="text-sm font-medium text-emerald-600 dark:text-emerald-400">Completed Repairs</p>
-                            <p class="text-3xl font-extrabold text-emerald-700 dark:text-emerald-300 mt-2">{{ $repairs->where('status', 'completed')->count() }}</p>
+                            <p class="text-3xl font-extrabold text-emerald-700 dark:text-emerald-300 mt-2">{{ App\Models\Repair::where('status', 'completed')->count() }}</p>
                             <div class="flex items-center mt-1 text-xs text-emerald-600 dark:text-emerald-400">
                                 <span class="inline-flex items-center">
                                     <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -394,24 +394,26 @@
                             <div class="flex flex-col">
                                 <span class="text-xs font-medium text-emerald-700 dark:text-emerald-300">This Month</span>
                                 <span class="text-lg font-bold text-emerald-800 dark:text-emerald-200">
-                                    {{ $repairs->where('status', 'completed')->filter(function($repair) {
-                                        return $repair->completed_at && $repair->completed_at->format('Y-m') === now()->format('Y-m');
-                                    })->count() }}
+                                    {{ App\Models\Repair::where('status', 'completed')
+                                        ->whereYear('completed_at', now()->year)
+                                        ->whereMonth('completed_at', now()->month)
+                                        ->count() }}
                                 </span>
                             </div>
                             <div class="flex flex-col">
                                 <span class="text-xs font-medium text-emerald-700 dark:text-emerald-300">Avg Time</span>
                                 <span class="text-lg font-bold text-emerald-800 dark:text-emerald-200">
                                     @php
-                                        $completedRepairs = $repairs->where('status', 'completed');
+                                        $completedRepairs = App\Models\Repair::where('status', 'completed')
+                                            ->whereNotNull('started_at')
+                                            ->whereNotNull('completed_at')
+                                            ->get();
                                         $totalDuration = 0;
                                         $count = 0;
                                         
                                         foreach($completedRepairs as $repair) {
-                                            if($repair->started_at && $repair->completed_at) {
-                                                $totalDuration += $repair->completed_at->diffInSeconds($repair->started_at);
-                                                $count++;
-                                            }
+                                            $totalDuration += $repair->completed_at->diffInSeconds($repair->started_at);
+                                            $count++;
                                         }
                                         
                                         if($count > 0) {
@@ -440,7 +442,7 @@
                     <div class="flex items-center justify-between relative">
                         <div>
                             <p class="text-sm font-medium text-blue-600 dark:text-blue-400">In Progress Repairs</p>
-                            <p class="text-3xl font-extrabold text-blue-700 dark:text-blue-300 mt-2">{{ $repairs->where('status', 'in_progress')->count() }}</p>
+                            <p class="text-3xl font-extrabold text-blue-700 dark:text-blue-300 mt-2">{{ App\Models\Repair::where('status', 'in_progress')->count() }}</p>
                             <div class="flex items-center mt-1 text-xs text-blue-600 dark:text-blue-400">
                                 <span class="inline-flex items-center">
                                     <svg class="h-4 w-4 mr-1 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -462,7 +464,7 @@
                                 <span class="text-xs font-medium text-blue-700 dark:text-blue-300">Active</span>
                                 <span class="text-lg font-bold text-blue-800 dark:text-blue-200">
                                     @php
-                                        $inProgressCount = $repairs->where('status', 'in_progress')->count();
+                                        $inProgressCount = App\Models\Repair::where('status', 'in_progress')->count();
                                         echo $inProgressCount ?: 'None';
                                     @endphp
                                 </span>
@@ -471,15 +473,15 @@
                                 <span class="text-xs font-medium text-blue-700 dark:text-blue-300">Avg Time</span>
                                 <span class="text-lg font-bold text-blue-800 dark:text-blue-200">
                                     @php
-                                        $inProgressRepairs = $repairs->where('status', 'in_progress');
+                                        $inProgressRepairs = App\Models\Repair::where('status', 'in_progress')
+                                            ->whereNotNull('started_at')
+                                            ->get();
                                         $totalSeconds = 0;
                                         $count = 0;
                                         
                                         foreach($inProgressRepairs as $repair) {
-                                            if($repair->started_at) {
-                                                $totalSeconds += now()->diffInSeconds($repair->started_at);
-                                                $count++;
-                                            }
+                                            $totalSeconds += now()->diffInSeconds($repair->started_at);
+                                            $count++;
                                         }
                                         
                                         if($count > 0) {
@@ -508,7 +510,7 @@
                     <div class="flex items-center justify-between relative">
                         <div>
                             <p class="text-sm font-medium text-red-600 dark:text-red-400">Canceled Repairs</p>
-                            <p class="text-3xl font-extrabold text-red-700 dark:text-red-300 mt-2 repair-stat-cancelled">{{ $repairs->where('status', 'cancelled')->count() }}</p>
+                            <p class="text-3xl font-extrabold text-red-700 dark:text-red-300 mt-2 repair-stat-cancelled">{{ App\Models\Repair::where('status', 'cancelled')->count() }}</p>
                             <div class="flex items-center mt-1 text-xs text-red-600 dark:text-red-400">
                                 <span class="inline-flex items-center">
                                     <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -529,15 +531,34 @@
                             <div class="flex flex-col">
                                 <span class="text-xs font-medium text-red-700 dark:text-red-300">This Month</span>
                                 <span class="text-lg font-bold text-red-800 dark:text-red-200">
-                                    {{ $repairs->where('status', 'cancelled')->filter(function($repair) {
-                                        return $repair->updated_at && $repair->updated_at->format('Y-m') === now()->format('Y-m');
-                                    })->count() }}
+                                    {{ App\Models\Repair::where('status', 'cancelled')
+                                        ->whereYear('updated_at', now()->year)
+                                        ->whereMonth('updated_at', now()->month)
+                                        ->count() }}
                                 </span>
                             </div>
                             <div class="flex flex-col">
                                 <span class="text-xs font-medium text-red-700 dark:text-red-300">Lost Revenue</span>
                                 <span class="text-lg font-bold text-red-800 dark:text-red-200">
-                                    ₱{{ number_format($repairs->where('status', 'cancelled')->sum('total_cost'), 0) }}
+                                    @php
+                                        // Get all cancelled repairs with their items
+                                        $cancelledRepairs = App\Models\Repair::where('status', 'cancelled')->get();
+                                        $totalLostRevenue = 0;
+                                        
+                                        // Calculate total lost revenue
+                                        foreach($cancelledRepairs as $repair) {
+                                            // If the repair has a custom total_cost property, use it
+                                            if(isset($repair->total_cost)) {
+                                                $totalLostRevenue += $repair->total_cost;
+                                            } 
+                                            // Otherwise try to sum from related items
+                                            elseif($repair->items && $repair->items->count() > 0) {
+                                                $totalLostRevenue += $repair->items->sum('cost');
+                                            }
+                                        }
+                                        
+                                        echo '₱' . number_format($totalLostRevenue, 0);
+                                    @endphp
                                 </span>
                             </div>
                         </div>
@@ -1234,12 +1255,17 @@
         if (customerSelect && customerSelect.value) {
             const deviceSelect = templateContent.querySelector('.device-select');
             if (deviceSelect) {
-                // Copy options from the first device select
+                // Clear default options first
+                deviceSelect.innerHTML = '<option value="">Select a device</option>';
+                
+                // Copy options from the first device select, skipping the first/default option
                 const firstDeviceSelect = document.querySelector('.device-select');
-                if (firstDeviceSelect && firstDeviceSelect.options.length > 0) {
-                    Array.from(firstDeviceSelect.options).forEach(option => {
+                if (firstDeviceSelect && firstDeviceSelect.options.length > 1) {
+                    // Start from index 1 to skip the "Select a device" option
+                    for (let i = 1; i < firstDeviceSelect.options.length; i++) {
+                        const option = firstDeviceSelect.options[i];
                         deviceSelect.add(option.cloneNode(true));
-                    });
+                    }
                 }
             }
         }

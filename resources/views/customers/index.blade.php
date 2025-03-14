@@ -84,6 +84,94 @@
     .modal-content {
         transition: all 0.3s ease-out;
     }
+
+    /* Status animations */
+    @keyframes flashPending {
+        0% { background-color: rgba(251, 191, 36, 0.1); }
+        50% { background-color: rgba(251, 191, 36, 0.3); }
+        100% { background-color: rgba(251, 191, 36, 0.1); }
+    }
+
+    @keyframes flashInProgress {
+        0% { background-color: rgba(59, 130, 246, 0.1); }
+        50% { background-color: rgba(59, 130, 246, 0.3); }
+        100% { background-color: rgba(59, 130, 246, 0.1); }
+    }
+
+    @keyframes flashCompleted {
+        0% { background-color: rgba(16, 185, 129, 0.1); }
+        50% { background-color: rgba(16, 185, 129, 0.3); }
+        100% { background-color: rgba(16, 185, 129, 0.1); }
+    }
+
+    @keyframes flashCancelled {
+        0% { background-color: rgba(239, 68, 68, 0.1); }
+        50% { background-color: rgba(239, 68, 68, 0.3); }
+        100% { background-color: rgba(239, 68, 68, 0.1); }
+    }
+
+    /* Dark mode animations */
+    @media (prefers-color-scheme: dark) {
+        @keyframes flashPendingDark {
+            0% { background-color: rgba(251, 191, 36, 0.2); }
+            50% { background-color: rgba(251, 191, 36, 0.4); }
+            100% { background-color: rgba(251, 191, 36, 0.2); }
+        }
+
+        @keyframes flashInProgressDark {
+            0% { background-color: rgba(59, 130, 246, 0.2); }
+            50% { background-color: rgba(59, 130, 246, 0.4); }
+            100% { background-color: rgba(59, 130, 246, 0.2); }
+        }
+
+        @keyframes flashCompletedDark {
+            0% { background-color: rgba(16, 185, 129, 0.2); }
+            50% { background-color: rgba(16, 185, 129, 0.4); }
+            100% { background-color: rgba(16, 185, 129, 0.2); }
+        }
+
+        @keyframes flashCancelledDark {
+            0% { background-color: rgba(239, 68, 68, 0.2); }
+            50% { background-color: rgba(239, 68, 68, 0.4); }
+            100% { background-color: rgba(239, 68, 68, 0.2); }
+        }
+    }
+
+    .status-pending {
+        animation: flashPending 2s ease-in-out infinite;
+        border-left: 4px solid #F59E0B;
+    }
+
+    .status-in-progress {
+        animation: flashInProgress 2s ease-in-out infinite;
+        border-left: 4px solid #3B82F6;
+    }
+
+    .status-completed {
+        animation: flashCompleted 2s ease-in-out infinite;
+        border-left: 4px solid #10B981;
+    }
+
+    .status-cancelled {
+        animation: flashCancelled 2s ease-in-out infinite;
+        border-left: 4px solid #EF4444;
+    }
+
+    .dark .status-pending {
+        animation: flashPendingDark 2s ease-in-out infinite;
+    }
+
+    .dark .status-in-progress {
+        animation: flashInProgressDark 2s ease-in-out infinite;
+    }
+
+    .dark .status-completed {
+        animation: flashCompletedDark 2s ease-in-out infinite;
+    }
+
+    .dark .status-cancelled {
+        animation: flashCancelledDark 2s ease-in-out infinite;
+    }
 </style>
 
 <div class="max-w-7xl mx-auto py-8 sm:px-6 lg:px-8">
@@ -139,36 +227,8 @@
         </div>
     </div>
 
-    <!-- Alerts -->
-    @if (session('success'))
-        <div class="mb-6 p-4 bg-green-50 dark:bg-green-900/50 border-l-4 border-green-500 rounded-lg shadow-sm">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-green-500 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                    </svg>
-                </div>
-                <div class="ml-3">
-                    <p class="text-sm font-medium text-green-800 dark:text-green-200">{{ session('success') }}</p>
-                </div>
-            </div>
-        </div>
-    @endif
-
-    @if (session('error'))
-        <div class="mb-6 p-4 bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 rounded-lg shadow-sm">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
-                <div class="ml-3">
-                    <p class="text-sm font-medium text-red-800 dark:text-red-200">{{ session('error') }}</p>
-                </div>
-            </div>
-        </div>
-    @endif
+    <!-- Alerts Container -->
+    <div id="alerts-container" class="mb-6"></div>
 
     <!-- Customers Table -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
@@ -229,6 +289,15 @@
                                 </button>
                                 <button type="button" 
                                     data-customer-id="{{ $customer->id }}" 
+                                    onclick="openDeviceModal(this.dataset.customerId)"
+                                    class="inline-flex items-center text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                    </svg>
+                                    Devices
+                                </button>
+                                <button type="button" 
+                                    data-customer-id="{{ $customer->id }}" 
                                     onclick="openEditModal(this.dataset.customerId)"
                                     class="inline-flex items-center text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -281,7 +350,7 @@
 </div>
 
 <!-- Add Customer Modal -->
-<div id="customerModal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+<div id="customerModal" class="fixed inset-0 z-40 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <!-- Background overlay -->
         <div class="fixed inset-0 bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75 transition-opacity" 
@@ -410,7 +479,7 @@
 </div>
 
 <!-- View Customer Modal -->
-<div id="viewCustomerModal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+<div id="viewCustomerModal" class="fixed inset-0 z-40 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <!-- Background overlay -->
         <div class="fixed inset-0 bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75 transition-opacity" 
@@ -418,7 +487,7 @@
             id="viewCustomerModalOverlay"></div>
 
         <!-- Modal panel -->
-        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             id="viewCustomerModalContent">
             <div class="bg-white dark:bg-gray-800">
                 <!-- Header -->
@@ -426,7 +495,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <h3 class="text-2xl font-bold text-gray-900 dark:text-white" id="view-modal-title">Customer Profile</h3>
-                            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">View and manage customer information and devices</p>
+                            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">View customer information</p>
                         </div>
                         <button type="button" onclick="closeViewModal()" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
                             <span class="sr-only">Close</span>
@@ -439,97 +508,34 @@
 
                 <!-- Content -->
                 <div class="px-6 py-4">
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="space-y-6">
                         <!-- Customer Information -->
-                        <div class="lg:col-span-1">
-                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm h-full border border-gray-200 dark:border-gray-700">
-                                <div class="border-b border-gray-200 dark:border-gray-700 p-4">
-                                    <h4 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                                        <svg class="w-5 h-5 mr-2 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                        </svg>
-                                        Customer Information
-                                    </h4>
-                                </div>
-
-                                <div class="p-4 space-y-4">
-                                    <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
-                                        <label class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</label>
-                                        <p class="mt-1 text-base font-medium text-gray-900 dark:text-white" id="view-customer-name"></p>
-                                    </div>
-                                    <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
-                                        <label class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Phone</label>
-                                        <p class="mt-1 text-base font-medium text-gray-900 dark:text-white" id="view-customer-phone"></p>
-                                    </div>
-                                    <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
-                                        <label class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Facebook Profile</label>
-                                        <p class="mt-1 text-base font-medium text-gray-900 dark:text-white overflow-hidden text-ellipsis" id="view-customer-facebook"></p>
-                                    </div>
-                                    <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
-                                        <label class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Address</label>
-                                        <p class="mt-1 text-base font-medium text-gray-900 dark:text-white" id="view-customer-address"></p>
-                                    </div>
-                                </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                            <div class="border-b border-gray-200 dark:border-gray-700 p-4">
+                                <h4 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                    Customer Information
+                                </h4>
                             </div>
-                        </div>
 
-                        <!-- Devices Section -->
-                        <div class="lg:col-span-2">
-                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm h-full border border-gray-200 dark:border-gray-700">
-                                <div class="border-b border-gray-200 dark:border-gray-700 p-4">
-                                    <div class="flex items-center justify-between">
-                                        <h4 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                                            <svg class="w-5 h-5 mr-2 text-indigo-500 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                                            </svg>
-                                            Devices
-                                        </h4>
-                                        <button type="button" 
-                                            onclick="showAddDeviceForm()"
-                                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors shadow-sm">
-                                            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                                            </svg>
-                                            Add Device
-                                        </button>
-                                    </div>
+                            <div class="p-4 space-y-4">
+                                <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                                    <label class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</label>
+                                    <p class="mt-1 text-base font-medium text-gray-900 dark:text-white" id="view-customer-name"></p>
                                 </div>
-
-                                <!-- Add Device Form -->
-                                <div id="add-device-form" class="hidden mx-4 my-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center">
-                                        <svg class="w-5 h-5 mr-2 text-indigo-500 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                        Add New Device
-                                    </h3>
-                                    <form id="deviceForm" class="space-y-4">
-                                        <div>
-                                            <label for="new-device-brand" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Brand</label>
-                                            <input type="text" id="new-device-brand" name="brand" required
-                                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                        </div>
-                                        <div>
-                                            <label for="new-device-model" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Model</label>
-                                            <input type="text" id="new-device-model" name="model" required
-                                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                        </div>
-                                        <div class="flex justify-end space-x-3">
-                                            <button type="button" onclick="hideAddDeviceForm()" 
-                                                class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-500 dark:hover:text-gray-400">
-                                                Cancel
-                                            </button>
-                                            <button type="submit"
-                                                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                                Add Device
-                                            </button>
-                                        </div>
-                                    </form>
+                                <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                                    <label class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Phone</label>
+                                    <p class="mt-1 text-base font-medium text-gray-900 dark:text-white" id="view-customer-phone"></p>
                                 </div>
-
-                                <!-- Devices List -->
-                                <div id="view-customer-devices" class="m-4 space-y-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 min-h-[200px] border border-gray-200 dark:border-gray-600">
-                                    <!-- Devices will be dynamically inserted here -->
+                                <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                                    <label class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Facebook Profile</label>
+                                    <p class="mt-1 text-base font-medium text-gray-900 dark:text-white overflow-hidden text-ellipsis" id="view-customer-facebook"></p>
+                                </div>
+                                <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                                    <label class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Address</label>
+                                    <p class="mt-1 text-base font-medium text-gray-900 dark:text-white" id="view-customer-address"></p>
                                 </div>
                             </div>
                         </div>
@@ -554,7 +560,7 @@
 </div>
 
 <!-- Edit Customer Modal -->
-<div id="editCustomerModal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+<div id="editCustomerModal" class="fixed inset-0 z-40 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <!-- Background overlay -->
         <div class="fixed inset-0 bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75 transition-opacity" 
@@ -562,80 +568,37 @@
             id="editCustomerModalOverlay"></div>
 
         <!-- Modal panel -->
-        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             id="editCustomerModalContent">
             <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div class="sm:flex sm:items-start">
-                    <div class="w-full">
-                        <div class="mb-8 border-b dark:border-gray-700 pb-4">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white" id="edit-modal-title">Edit Customer</h3>
-                                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Update customer information and preferences.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <form id="editCustomerForm" method="POST" class="space-y-8">
+                    <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4" id="modal-title">Edit Customer</h3>
+                        
+                        <!-- Edit Customer Form -->
+                        <form id="editCustomerForm" class="space-y-4">
                             @csrf
                             @method('PUT')
-
-                            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6">
-                                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                    </svg>
-                                    Customer Information
-                                </h2>
-
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <!-- Name -->
-                                    <div class="space-y-2">
-                                        <label for="edit-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Customer Name</label>
-                                        <input type="text" name="name" id="edit-name" required
-                                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 transition duration-150">
-                                        @error('name')
-                                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-
-                                    <!-- Phone -->
-                                    <div class="space-y-2">
-                                        <label for="edit-phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone Number</label>
-                                        <input type="tel" name="phone" id="edit-phone" required
-                                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 transition duration-150">
-                                        @error('phone')
-                                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-
-                                    <!-- Facebook URL -->
-                                    <div class="space-y-2">
-                                        <label for="edit-facebook_url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Facebook Profile URL</label>
-                                        <div class="mt-1 relative rounded-md shadow-sm">
-                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                <svg class="h-5 w-5 text-gray-400 dark:text-gray-500" fill="currentColor" viewBox="0 0 24 24">
-                                                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                                                </svg>
-                                            </div>
-                                            <input type="url" name="facebook_url" id="edit-facebook_url"
-                                                placeholder="https://facebook.com/profile"
-                                                class="pl-10 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 transition duration-150">
-                                        </div>
-                                        @error('facebook_url')
-                                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-
-                                    <!-- Address -->
-                                    <div class="md:col-span-2 space-y-2">
-                                        <label for="edit-address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Address</label>
-                                        <textarea name="address" id="edit-address" rows="3" 
-                                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 transition duration-150"></textarea>
-                                        @error('address')
-                                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                        @enderror
-                                    </div>
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="edit-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+                                    <input type="text" name="name" id="edit-name" required
+                                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                </div>
+                                <div>
+                                    <label for="edit-phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone</label>
+                                    <input type="text" name="phone" id="edit-phone"
+                                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                </div>
+                                <div>
+                                    <label for="edit-facebook" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Facebook URL</label>
+                                    <input type="url" name="facebook_url" id="edit-facebook"
+                                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                </div>
+                                <div>
+                                    <label for="edit-address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Address</label>
+                                    <textarea name="address" id="edit-address" rows="3"
+                                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></textarea>
                                 </div>
                             </div>
                         </form>
@@ -644,11 +607,11 @@
             </div>
             <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                 <button type="submit" form="editCustomerForm"
-                    class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm transition duration-150">
+                    class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
                     Update Customer
                 </button>
                 <button type="button" onclick="closeEditModal()"
-                    class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition duration-150">
+                    class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                     Cancel
                 </button>
             </div>
@@ -658,596 +621,385 @@
 
 @push('scripts')
 <script>
+// Global state
+let selectedCustomerId = null;
+
 // Get CSRF token from meta tag
 const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-// Animation utility functions
+// Utility functions for showing messages
+function showSuccessMessage(message) {
+    const alertsContainer = document.getElementById('alerts-container');
+    alertsContainer.innerHTML = `
+        <div class="p-4 bg-green-50 dark:bg-green-900/50 border-l-4 border-green-500 rounded-lg shadow-sm">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-green-500 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-green-800 dark:text-green-200">${message}</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    setTimeout(() => {
+        alertsContainer.innerHTML = '';
+    }, 5000);
+}
+
+function showErrorMessage(message) {
+    const alertsContainer = document.getElementById('alerts-container');
+    alertsContainer.innerHTML = `
+        <div class="p-4 bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 rounded-lg shadow-sm">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-red-800 dark:text-red-200">${message}</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    setTimeout(() => {
+        alertsContainer.innerHTML = '';
+    }, 5000);
+}
+
+// Modal utility functions
 function showModal(modalId, contentId, overlayId) {
-    try {
-        const modal = document.getElementById(modalId);
-        const content = document.getElementById(contentId);
-        const overlay = document.getElementById(overlayId);
-        
-        if (!modal) {
-            console.error(`Modal element with ID '${modalId}' not found`);
-            return;
-        }
-        
-        if (!content) {
-            console.error(`Content element with ID '${contentId}' not found`);
-            return;
-        }
-        
-        if (!overlay) {
-            console.error(`Overlay element with ID '${overlayId}' not found`);
-            return;
-        }
-        
-        // Show modal
-        modal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-        
-        // Animate overlay
-        overlay.classList.add('ease-out', 'duration-300');
-        overlay.classList.remove('opacity-0');
-        overlay.classList.add('opacity-100');
-        
-        // Animate content
-        content.classList.add('ease-out', 'duration-300');
-        setTimeout(() => {
-            content.classList.remove('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
-            content.classList.add('opacity-100', 'translate-y-0', 'sm:scale-100');
-        }, 100);
-    } catch (error) {
-        console.error('Error showing modal:', error);
+    const modal = document.getElementById(modalId);
+    const content = document.getElementById(contentId);
+    const overlay = document.getElementById(overlayId);
+    
+    if (!modal || !content || !overlay) {
+        console.error('Modal elements not found');
+        return;
     }
+
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    
+    requestAnimationFrame(() => {
+        overlay.classList.add('opacity-100');
+        content.classList.remove('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
+        content.classList.add('opacity-100', 'translate-y-0', 'sm:scale-100');
+    });
 }
 
 function hideModal(modalId, contentId, overlayId) {
-    try {
-        const modal = document.getElementById(modalId);
-        const content = document.getElementById(contentId);
-        const overlay = document.getElementById(overlayId);
-        
-        if (!modal) {
-            console.error(`Modal element with ID '${modalId}' not found`);
-            return;
-        }
-        
-        if (!content) {
-            console.error(`Content element with ID '${contentId}' not found`);
-            return;
-        }
-        
-        if (!overlay) {
-            console.error(`Overlay element with ID '${overlayId}' not found`);
-            return;
-        }
-        
-        // Animate overlay
-        overlay.classList.add('ease-in', 'duration-200');
-        overlay.classList.remove('opacity-100');
-        overlay.classList.add('opacity-0');
-        
-        // Animate content
-        content.classList.add('ease-in', 'duration-200');
-        content.classList.remove('opacity-100', 'translate-y-0', 'sm:scale-100');
-        content.classList.add('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
-        
-        // Hide modal after animation
-        setTimeout(() => {
-            modal.classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        }, 200);
-    } catch (error) {
-        console.error('Error hiding modal:', error);
-        // Still try to hide the modal even if animation fails
-        try {
-            document.getElementById(modalId).classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        } catch (e) {}
+    const modal = document.getElementById(modalId);
+    const content = document.getElementById(contentId);
+    const overlay = document.getElementById(overlayId);
+    
+    if (!modal || !content || !overlay) {
+        console.error('Modal elements not found');
+        return;
     }
+
+    overlay.classList.remove('opacity-100');
+    content.classList.remove('opacity-100', 'translate-y-0', 'sm:scale-100');
+    content.classList.add('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }, 200);
 }
 
+// Customer modal functions
 function openModal() {
     showModal('customerModal', 'customerModalContent', 'customerModalOverlay');
 }
 
 function closeModal() {
     hideModal('customerModal', 'customerModalContent', 'customerModalOverlay');
+    document.getElementById('customerForm').reset();
 }
 
-// View modal functions
-function showAddDeviceForm() {
-    document.getElementById('add-device-form').classList.remove('hidden');
+// Device modal functions
+function openDeviceModal(customerId) {
+    selectedCustomerId = customerId;
+    showModal('deviceModal', 'deviceModalContent', 'deviceModalOverlay');
+    loadCustomerDevices(customerId, 'devices-list');
 }
 
-function hideAddDeviceForm() {
-    const form = document.getElementById('add-device-form');
-    form.classList.add('hidden');
-    
-    // Reset form to its original state
-    document.getElementById('new-device-brand').value = '';
-    document.getElementById('new-device-model').value = '';
-    document.querySelector('#add-device-form h3').textContent = 'Add New Device';
-    document.querySelector('#add-device-form button[type="submit"]').textContent = 'Add Device';
+function closeDeviceModal() {
+    hideModal('deviceModal', 'deviceModalContent', 'deviceModalOverlay');
 }
 
-// Keep device form open after submission (don't hide it)
-function resetDeviceForm() {
-    // Reset form fields
-    document.getElementById('new-device-brand').value = '';
-    document.getElementById('new-device-model').value = '';
-    document.querySelector('#add-device-form h3').textContent = 'Add New Device';
-    document.querySelector('#add-device-form button[type="submit"]').textContent = 'Add Device';
-    
-    // Make sure the form is still visible
-    document.getElementById('add-device-form').classList.remove('hidden');
+function openAddDeviceForm() {
+    showModal('addDeviceModal', 'addDeviceModalContent', 'addDeviceModalOverlay');
 }
 
-let currentCustomerId = null;
+function closeAddDeviceModal() {
+    hideModal('addDeviceModal', 'addDeviceModalContent', 'addDeviceModalOverlay');
+    document.getElementById('addDeviceForm').reset();
+}
 
-// Function to open the customer view modal
-function openViewModal(customerId) {
-    currentCustomerId = customerId; // Store the customer ID
-    
-    // Show the modal with animation
-    showModal('viewCustomerModal', 'viewCustomerModalContent', 'viewCustomerModalOverlay');
-    
-    // Show loading state in the devices container
-    const devicesContainer = document.getElementById('view-customer-devices');
-    if (devicesContainer) {
-        devicesContainer.innerHTML = `
-            <div class="flex justify-center items-center py-8">
-                <svg class="animate-spin h-8 w-8 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-            </div>
-        `;
+// Device management functions
+function loadCustomerDevices(customerId, container = 'devices-list') {
+    const devicesList = document.getElementById(container);
+    if (!devicesList) {
+        console.error(`Devices list container '${container}' not found`);
+        return;
     }
-    
-    fetch(`/customers/${customerId}`, {
+
+    // Show loading state
+    devicesList.innerHTML = `
+        <div class="flex justify-center items-center py-8">
+            <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+        </div>
+    `;
+
+    console.log('Fetching devices for customer:', customerId);
+
+    fetch(`/api/customers/${customerId}/devices`, {
+        method: 'GET',
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': csrfToken,
             'Accept': 'application/json',
-            'Cache-Control': 'no-cache, no-store'
-        }
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        },
+        credentials: 'same-origin'
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+            return response.json().then(err => Promise.reject(err));
+        }
+        return response.json();
+    })
     .then(data => {
-        if (data.customer) {
-            const customer = data.customer;
-            document.getElementById('view-customer-name').textContent = customer.name || 'Not provided';
-            document.getElementById('view-customer-phone').textContent = customer.phone || 'Not provided';
-            document.getElementById('view-customer-facebook').innerHTML = customer.facebook_url ? 
-                `<a href="${customer.facebook_url}" target="_blank" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">${customer.facebook_url}</a>` : 
-                'Not provided';
-            document.getElementById('view-customer-address').textContent = customer.address || 'Not provided';
-            
-            // Handle devices - ensure we completely clear and rebuild the devices list
-            const devicesContainer = document.getElementById('view-customer-devices');
-            devicesContainer.innerHTML = '';
-            
-            if (customer.devices && customer.devices.length > 0) {
-                const devicesList = document.createElement('div');
-                devicesList.className = 'space-y-4';
-                
-                customer.devices.forEach(device => {
-                    const deviceElement = document.createElement('div');
-                    deviceElement.className = 'bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200';
-                    deviceElement.setAttribute('data-device-id', device.id);
-                    
-                    // Get status class based on device status
-                    let statusClass = 'bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-300';
-                    let statusText = device.status || 'Unknown';
-                    
-                    if (device.status) {
-                        const status = device.status.toLowerCase();
-                        switch(status) {
-                            case 'completed':
-                                statusClass = 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300';
-                                break;
-                            case 'repairing':
-                            case 'pending':
-                                statusClass = 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300';
-                                break;
-                            case 'received':
-                                statusClass = 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300';
-                                break;
-                        }
-                        statusText = statusText.charAt(0).toUpperCase() + statusText.slice(1);
-                    }
-                    
-                    // Add the device content
-                    deviceElement.innerHTML = `
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-start space-x-3">
-                                <div class="h-10 w-10 flex-shrink-0 rounded-full customer-avatar avatar-${(device.brand?.charAt(0) || 'a').toLowerCase()} flex items-center justify-center text-sm font-bold">
-                                    ${(device.brand?.charAt(0) || 'A').toUpperCase()}
-                                </div>
-                                <div>
-                                    <h3 class="text-base font-medium text-gray-900 dark:text-white">${device.brand ? `${device.brand} ${device.model}` : 'Unknown Device'}</h3>
-                                    <div class="mt-1 flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
-                                        <span class="font-medium">${device.brand || ''}</span>
-                                        ${device.brand && device.model ? '<span>&bull;</span>' : ''}
-                                        <span>${device.model || ''}</span>
-                                        <span class="ml-2 px-2.5 py-0.5 text-xs font-medium rounded-full ${statusClass}">
-                                            ${statusText}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <button type="button"
-                                    onclick="editDevice(${device.id}, '${device.brand?.replace(/'/g, "\\'")}', '${device.model?.replace(/'/g, "\\'")}')"
-                                    class="inline-flex items-center justify-center p-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors shadow-sm">
-                                    <svg class="h-4 w-4 text-indigo-500 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                    </svg>
-                                </button>
-                                <button type="button"
-                                    onclick="createRepairForDevice(currentCustomerId, ${device.id}, '${device.brand?.replace(/'/g, "\\'")}', '${device.model?.replace(/'/g, "\\'")}')"
-                                    class="inline-flex items-center justify-center p-2 border border-indigo-500 dark:border-indigo-400 rounded-lg text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-white dark:bg-gray-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors shadow-sm">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                    </svg>
-                                </button>
-                                <button type="button"
-                                    onclick="deleteDevice(event, ${device.id})"
-                                    class="inline-flex items-center justify-center p-2 border border-red-500 dark:border-red-400 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 bg-white dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-900/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors shadow-sm">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    devicesList.appendChild(deviceElement);
-                });
-                
-                devicesContainer.appendChild(devicesList);
-            } else {
-                devicesContainer.innerHTML = `
-                    <div class="flex flex-col items-center justify-center h-[180px]">
-                        <svg class="h-12 w-12 text-gray-400 dark:text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        console.log('Received data:', data);
+        devicesList.innerHTML = '';
+
+        if (!data || data.length === 0) {
+            devicesList.innerHTML = `
+                <div class="text-center py-8">
+                    <div class="mb-4">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                         </svg>
-                        <p class="text-gray-500 dark:text-gray-400 text-center">No devices found for this customer.</p>
-                        <button type="button" 
-                            onclick="showAddDeviceForm()" 
-                            class="mt-3 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                            </svg>
-                            Add First Device
-                        </button>
                     </div>
-                `;
-            }
-        } else {
-            console.error('Customer data not found');
+                    <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No devices found</h3>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by adding a new device.</p>
+                    <button type="button" onclick="openAddDeviceForm()" 
+                        class="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Add New Device
+                    </button>
+                </div>
+            `;
+            return;
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        const devicesContainer = document.getElementById('view-customer-devices');
-        if (devicesContainer) {
-            devicesContainer.innerHTML = `
-                <div class="p-4 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 rounded-md">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                            </svg>
+
+        data.forEach(device => {
+            const statusClass = {
+                'pending': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+                'in_progress': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+                'completed': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+                'cancelled': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+                'no_repairs': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+            }[device.status] || 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+
+            const deviceElement = document.createElement('div');
+            deviceElement.className = 'bg-white dark:bg-gray-700 shadow rounded-lg p-4 mb-4';
+            deviceElement.innerHTML = `
+                <div class="flex flex-col space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="flex-shrink-0">
+                                <div class="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                                    <svg class="h-6 w-6 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-medium text-gray-900 dark:text-white">${device.brand} ${device.model}</h4>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClass}">
+                                    ${device.status.replace('_', ' ').charAt(0).toUpperCase() + device.status.slice(1).replace('_', ' ')}
+                                </span>
+                            </div>
                         </div>
-                        <div class="ml-3">
-                            <p class="text-sm text-red-700 dark:text-red-200">
-                                Error loading customer data. Please try again.
-                            </p>
+                        <div class="flex space-x-2">
+                            <button onclick="editDevice(${device.id})" 
+                                class="inline-flex items-center px-3 py-1.5 border border-indigo-300 dark:border-indigo-700 text-sm font-medium rounded-md text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/50 hover:bg-indigo-100 dark:hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Edit
+                            </button>
+                            <button onclick="deleteDevice(${device.id})" 
+                                class="inline-flex items-center px-3 py-1.5 border border-red-300 dark:border-red-700 text-sm font-medium rounded-md text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/50 hover:bg-red-100 dark:hover:bg-red-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-200 dark:border-gray-600 pt-4">
+                        <div class="grid grid-cols-4 gap-4 text-sm">
+                            <div>
+                                <span class="text-gray-500 dark:text-gray-400">Pending:</span>
+                                <span class="ml-2 font-medium text-yellow-600 dark:text-yellow-400" id="pending-count-${device.id}">
+                                    <svg class="inline-block h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500 dark:text-gray-400">In Progress:</span>
+                                <span class="ml-2 font-medium text-blue-600 dark:text-blue-400" id="in-progress-count-${device.id}">
+                                    <svg class="inline-block h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500 dark:text-gray-400">Completed:</span>
+                                <span class="ml-2 font-medium text-green-600 dark:text-green-400" id="completed-count-${device.id}">
+                                    <svg class="inline-block h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500 dark:text-gray-400">Cancelled:</span>
+                                <span class="ml-2 font-medium text-red-600 dark:text-red-400" id="cancelled-count-${device.id}">
+                                    <svg class="inline-block h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
             `;
-        }
-    });
-}
+            devicesList.appendChild(deviceElement);
 
-function closeViewModal() {
-    hideModal('viewCustomerModal', 'viewCustomerModalContent', 'viewCustomerModalOverlay');
-}
-
-// Edit modal functions
-function openEditModal(customerId) {
-    const form = document.getElementById('editCustomerForm');
-    form.action = `/customers/${customerId}`;
-
-    fetch(`/customers/${customerId}/edit`, {
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': csrfToken
-        }
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.customer) {
-                const customer = data.customer;
-                document.getElementById('edit-name').value = customer.name;
-                document.getElementById('edit-phone').value = customer.phone || '';
-                document.getElementById('edit-facebook_url').value = customer.facebook_url || '';
-                document.getElementById('edit-address').value = customer.address || '';
-                
-                showModal('editCustomerModal', 'editCustomerModalContent', 'editCustomerModalOverlay');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error loading customer details for editing');
-        });
-}
-
-function closeEditModal() {
-    hideModal('editCustomerModal', 'editCustomerModalContent', 'editCustomerModalOverlay');
-}
-
-// Function to show alerts
-function showAlert(type, message) {
-    const alertClass = type === 'success' 
-        ? 'bg-green-50 dark:bg-green-900/50 border-green-500 text-green-800 dark:text-green-200' 
-        : 'bg-red-50 dark:bg-red-900/50 border-red-500 text-red-800 dark:text-red-200';
-    
-    const iconPath = type === 'success'
-        ? 'M5 13l4 4L19 7'
-        : 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z';
-    
-    const iconColor = type === 'success' ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400';
-    
-    const alert = document.createElement('div');
-    alert.className = `mb-6 p-4 ${alertClass} border-l-4 rounded-lg shadow-sm`;
-    alert.innerHTML = `
-        <div class="flex items-center">
-            <div class="flex-shrink-0">
-                <svg class="h-5 w-5 ${iconColor}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${iconPath}"/>
-                </svg>
-            </div>
-            <div class="ml-3">
-                <p class="text-sm font-medium">${message}</p>
-            </div>
-        </div>
-    `;
-    
-    // Insert alert after the header
-    const header = document.querySelector('.mb-8');
-    if (header) {
-        header.insertAdjacentElement('afterend', alert);
-        
-        // Remove the alert after 5 seconds with fade out
-        setTimeout(() => {
-            alert.style.opacity = '0';
-            alert.style.transition = 'opacity 0.5s ease-in-out';
-            setTimeout(() => alert.remove(), 500);
-        }, 5000);
-    }
-}
-
-// Handle edit form submission
-function handleEditFormSubmit(e) {
-    e.preventDefault();
-    const form = this;
-    const formData = new FormData(form);
-
-    // Clear any existing error messages
-    form.querySelectorAll('.text-red-600').forEach(el => el.remove());
-    form.querySelectorAll('.border-red-500').forEach(el => el.classList.remove('border-red-500'));
-
-    // Show loading state on submit button
-    const submitButton = form.querySelector('button[type="submit"]');
-    const originalButtonText = submitButton.innerHTML;
-    submitButton.disabled = true;
-    submitButton.innerHTML = `
-        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        Updating...
-    `;
-
-    fetch(form.action, {
-        method: 'POST',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': csrfToken
-        },
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            closeEditModal();
-            showAlert('success', data.message || 'Customer updated successfully!');
-            
-            // Update the customer row in the table
-            const customerId = form.action.split('/').pop();
-            const customerRow = document.querySelector(`#customer-${customerId}`);
-            if (customerRow) {
-                const nameCell = customerRow.querySelector('.text-sm.font-medium');
-                const phoneCell = customerRow.querySelector('.text-sm.text-gray-900');
-                const emailCell = customerRow.querySelector('.text-sm.text-gray-500');
-                
-                if (nameCell) nameCell.textContent = formData.get('name');
-                if (phoneCell) phoneCell.textContent = formData.get('phone');
-                if (emailCell) emailCell.textContent = formData.get('email');
-            }
-        } else {
-            // Handle validation errors
-            const errors = data.errors || {};
-            Object.keys(errors).forEach(field => {
-                const input = form.querySelector(`[name="${field}"]`);
-                if (input) {
-                    input.classList.add('border-red-500');
-                    const errorElement = document.createElement('p');
-                    errorElement.className = 'mt-1 text-sm text-red-600 dark:text-red-400';
-                    errorElement.textContent = errors[field][0];
-                    input.parentNode.appendChild(errorElement);
-                }
-            });
-            showAlert('error', data.message || 'Failed to update customer. Please check the form and try again.');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showAlert('error', 'Error updating customer. Please try again.');
-    })
-    .finally(() => {
-        // Restore button state
-        submitButton.disabled = false;
-        submitButton.innerHTML = originalButtonText;
-    });
-}
-
-// Handle customer deletion
-function handleCustomerDelete(e) {
-    e.preventDefault();
-    
-    if (!confirm('Are you sure you want to delete this customer? This action cannot be undone.')) {
-        return false;
-    }
-
-    const form = e.target;
-    const row = form.closest('.customer-row');
-    const deleteButton = form.querySelector('button[type="submit"]');
-    const originalButtonContent = deleteButton.innerHTML;
-    
-    // Show loading state
-    deleteButton.disabled = true;
-    deleteButton.innerHTML = `
-        <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-    `;
-
-    const formData = new FormData(form);
-    formData.append('_method', 'DELETE'); // Add this line to properly send DELETE method
-
-    fetch(form.action, {
-        method: 'POST', // Change this to POST since we're using _method for DELETE
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': csrfToken,
-            'Accept': 'application/json'
-        },
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Fade out and remove the row
-            row.style.opacity = '0';
-            row.style.transition = 'opacity 0.5s ease-in-out';
-            setTimeout(() => row.remove(), 500);
-            
-            showAlert('success', data.message || 'Customer deleted successfully.');
-            
-            // Check if table is empty and show empty state if needed
-            const tbody = document.querySelector('table tbody');
-            if (tbody.children.length <= 1) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="4" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
-                            <p class="text-base">No customers found.</p>
-                        </td>
-                    </tr>
+            // Update the counts after a short delay to simulate loading
+            setTimeout(() => {
+                // Helper function to create check icon
+                const createCheckIcon = () => `
+                    <svg class="inline-block h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
                 `;
-            }
+
+                // Helper function to create loading spinner
+                const createLoadingSpinner = () => `
+                    <svg class="inline-block h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                `;
+
+                // Update pending count
+                const pendingCount = document.getElementById(`pending-count-${device.id}`);
+                pendingCount.innerHTML = device.pending_repairs_count > 0 ? createCheckIcon() : createLoadingSpinner();
+                pendingCount.className = `ml-2 font-medium ${device.pending_repairs_count > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-400 dark:text-gray-500'}`;
+
+                // Update in progress count
+                const inProgressCount = document.getElementById(`in-progress-count-${device.id}`);
+                inProgressCount.innerHTML = device.in_progress_repairs_count > 0 ? createCheckIcon() : createLoadingSpinner();
+                inProgressCount.className = `ml-2 font-medium ${device.in_progress_repairs_count > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}`;
+
+                // Update completed count
+                const completedCount = document.getElementById(`completed-count-${device.id}`);
+                completedCount.innerHTML = device.completed_repairs_count > 0 ? createCheckIcon() : createLoadingSpinner();
+                completedCount.className = `ml-2 font-medium ${device.completed_repairs_count > 0 ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'}`;
+
+                // Update cancelled count
+                const cancelledCount = document.getElementById(`cancelled-count-${device.id}`);
+                cancelledCount.innerHTML = device.cancelled_repairs_count > 0 ? createCheckIcon() : createLoadingSpinner();
+                cancelledCount.className = `ml-2 font-medium ${device.cancelled_repairs_count > 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-400 dark:text-gray-500'}`;
+            }, 1000);
+        });
+    })
+    .catch(error => {
+        console.error('Error loading devices:', error);
+        devicesList.innerHTML = `
+            <div class="text-center py-8">
+                <div class="text-red-500 mb-4">
+                    <svg class="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <h3 class="mt-2 text-sm font-medium text-red-800 dark:text-red-200">Error loading devices</h3>
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">${error.message || 'An unexpected error occurred'}</p>
+                <button type="button" onclick="loadCustomerDevices(${customerId}, '${container}')" 
+                    class="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                    <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    Try Again
+                </button>
+            </div>
+        `;
+    });
+}
+
+function handleAddDevice(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+
+    fetch(`/customers/${selectedCustomerId}/devices`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+        },
+        body: JSON.stringify({
+            brand: formData.get('brand'),
+            model: formData.get('model')
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            closeAddDeviceModal();
+            // Reload devices in both containers
+            loadCustomerDevices(selectedCustomerId, 'devices-list');
+            loadCustomerDevices(selectedCustomerId, 'view-customer-devices');
+            showSuccessMessage(data.message);
+            // Return to Customer Profile Modal
+            openViewModal(selectedCustomerId);
         } else {
-            showAlert('error', data.message || 'Failed to delete customer.');
-            // Restore button state
-            deleteButton.disabled = false;
-            deleteButton.innerHTML = originalButtonContent;
+            showErrorMessage(data.message || 'Error adding device');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showAlert('error', 'Error deleting customer. Please try again.');
-        // Restore button state
-        deleteButton.disabled = false;
-        deleteButton.innerHTML = originalButtonContent;
+        showErrorMessage('Error adding device');
     });
 }
 
-// Close modals when clicking outside
-document.getElementById('customerModal').addEventListener('click', function(event) {
-    if (event.target === this) {
-        closeModal();
-    }
-});
-
-document.getElementById('viewCustomerModal').addEventListener('click', function(event) {
-    if (event.target === this) {
-        closeViewModal();
-    }
-});
-
-document.getElementById('editCustomerModal').addEventListener('click', function(event) {
-    if (event.target === this) {
-        closeEditModal();
-    }
-});
-
-// Close modals on escape key press
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape') {
-        if (!document.getElementById('customerModal').classList.contains('hidden')) {
-            closeModal();
-        }
-        if (!document.getElementById('viewCustomerModal').classList.contains('hidden')) {
-            closeViewModal();
-        }
-        if (!document.getElementById('editCustomerModal').classList.contains('hidden')) {
-            closeEditModal();
-        }
-    }
-});
-
-// Add this to your JavaScript after the openViewModal function
-document.getElementById('deviceForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (!currentCustomerId) {
-        console.error('Error: Customer ID not found');
-        return false;
+function deleteDevice(deviceId) {
+    if (!confirm('Are you sure you want to delete this device?')) {
+        return;
     }
 
-    const formData = new FormData();
-    formData.append('brand', document.getElementById('new-device-brand').value);
-    formData.append('model', document.getElementById('new-device-model').value);
-    formData.append('_token', csrfToken);
-
-    // Show loading state on button
-    const submitButton = document.querySelector('#add-device-form button[type="submit"]');
-    const originalText = submitButton.textContent;
-    submitButton.disabled = true;
-    submitButton.innerHTML = `
-        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        Adding...
-    `;
-
-    fetch(`/customers/${currentCustomerId}/devices`, {
-        method: 'POST',
+    fetch(`/devices/${deviceId}`, {
+        method: 'DELETE',
         headers: {
-            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json',
             'X-CSRF-TOKEN': csrfToken,
-            'Accept': 'application/json',
-            'Cache-Control': 'no-cache, no-store'
-        },
-        body: formData
+            'X-Requested-With': 'XMLHttpRequest'
+        }
     })
     .then(response => {
         if (!response.ok) {
@@ -1257,1735 +1009,193 @@ document.getElementById('deviceForm').addEventListener('submit', function(e) {
     })
     .then(data => {
         if (data.success) {
-            // Show success message
-            const successMessage = document.createElement('div');
-            successMessage.className = 'mb-4 p-4 bg-green-50 dark:bg-green-900/50 border-l-4 border-green-500 rounded-lg';
-            successMessage.innerHTML = `
-                <div class="flex items-center">
-                    <svg class="h-5 w-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                    </svg>
-                    <span class="text-sm text-green-700 dark:text-green-300">${data.message || 'Device added successfully'}</span>
-                </div>
-            `;
-            const deviceForm = document.getElementById('add-device-form');
-            deviceForm.insertBefore(successMessage, deviceForm.firstChild);
-            
-            // Remove success message after 3 seconds
-            setTimeout(() => successMessage.remove(), 3000);
-            
-            // Reset form but keep it visible
-            resetDeviceForm();
-            
-            // Restore submit button
-            submitButton.disabled = false;
-            submitButton.textContent = originalText;
-            
-            // Refresh the devices list without reopening the modal
-            refreshDeviceList(currentCustomerId);
+            // Reload devices in both containers
+            loadCustomerDevices(selectedCustomerId, 'devices-list');
+            loadCustomerDevices(selectedCustomerId, 'view-customer-devices');
+            showSuccessMessage('Device deleted successfully');
         } else {
-            throw new Error(data.message || 'Failed to add device');
+            showErrorMessage(data.message || 'Error deleting device');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        
-        // Show error message
-        const errorMessage = document.createElement('div');
-        errorMessage.className = 'mb-4 p-4 bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 rounded-lg';
-        errorMessage.innerHTML = `
-            <div class="flex items-center">
-                <svg class="h-5 w-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <span class="text-sm text-red-700 dark:text-red-300">${error.message}</span>
-            </div>
-        `;
-        const deviceForm = document.getElementById('add-device-form');
-        deviceForm.insertBefore(errorMessage, deviceForm.firstChild);
-        
-        // Remove error message after 3 seconds
-        setTimeout(() => errorMessage.remove(), 3000);
-        
-        // Restore button state
-        submitButton.disabled = false;
-        submitButton.textContent = originalText;
+        showErrorMessage('Error deleting device');
     });
-    
-    return false;
-});
-
-// Update the customer form submission to use AJAX
-document.getElementById('customerForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const form = this;
-    const formData = new FormData(form);
-
-    // Clear any existing error messages
-    form.querySelectorAll('.text-red-600').forEach(el => el.remove());
-    form.querySelectorAll('.border-red-500').forEach(el => el.classList.remove('border-red-500'));
-
-    fetch(form.action, {
-        method: 'POST',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': csrfToken
-        },
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Close the modal
-            closeModal();
-            
-            // Show success alert
-            const successAlert = document.createElement('div');
-            successAlert.className = 'mb-6 p-4 bg-green-50 dark:bg-green-900/50 border-l-4 border-green-500 rounded-lg shadow-sm';
-            successAlert.innerHTML = `
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <svg class="h-5 w-5 text-green-500 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium text-green-800 dark:text-green-200">${data.message || 'Customer created successfully!'}</p>
-                    </div>
-                </div>
-            `;
-            
-            // Insert the alert after the header
-            const header = document.querySelector('.mb-8');
-            if (header) {
-                header.insertAdjacentElement('afterend', successAlert);
-                
-                // Remove the alert after 5 seconds
-                setTimeout(() => {
-                    successAlert.style.opacity = '0';
-                    successAlert.style.transition = 'opacity 0.5s ease-in-out';
-                    setTimeout(() => successAlert.remove(), 500);
-                }, 5000);
-            }
-            
-            // Create the new row with fade-in animation
-            const newRow = document.createElement('tr');
-            newRow.className = 'customer-row hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150 fade-in';
-            newRow.innerHTML = `
-                <td class="px-6 py-4">
-                    <div class="text-sm font-medium text-gray-900 dark:text-white">${data.customer.name}</div>
-                    ${data.customer.facebook_url ? `
-                        <a href="${data.customer.facebook_url}" target="_blank" 
-                            class="inline-flex items-center mt-1 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
-                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                            </svg>
-                            Profile
-                        </a>
-                    ` : ''}
-                </td>
-                <td class="px-6 py-4">
-                    <div class="text-sm text-gray-900 dark:text-white">${data.customer.phone}</div>
-                    ${data.customer.email ? `
-                        <div class="text-sm text-gray-500 dark:text-gray-400">${data.customer.email}</div>
-                    ` : ''}
-                </td>
-                <td class="px-6 py-4">
-                    <div class="flex items-center">
-                        <div class="text-sm text-gray-900 dark:text-white">
-                            <span class="font-medium">${data.customer.devices_count || 0}</span> devices
-                        </div>
-                        ${data.customer.pending_repairs_count > 0 ? `
-                            <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                                ${data.customer.pending_repairs_count} in repair
-                            </span>
-                        ` : ''}
-                    </div>
-                </td>
-                <td class="px-6 py-4 text-right text-sm font-medium space-x-3">
-                    <button type="button" 
-                        data-customer-id="${data.customer.id}" 
-                        onclick="openViewModal(this.dataset.customerId)"
-                        class="inline-flex items-center text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                        </svg>
-                        View
-                    </button>
-                    <button type="button" 
-                        data-customer-id="${data.customer.id}" 
-                        onclick="openEditModal(this.dataset.customerId)"
-                        class="inline-flex items-center text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                        </svg>
-                        Edit
-                    </button>
-                    <form action="/customers/${data.customer.id}" method="POST" class="inline">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" 
-                            class="inline-flex items-center text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                            </svg>
-                            Delete
-                        </button>
-                    </form>
-                </td>
-            `;
-            
-            // Insert the new row at the beginning of the table
-            const customersTable = document.querySelector('table tbody');
-            customersTable.insertBefore(newRow, customersTable.firstChild);
-
-            // Reset the form
-            form.reset();
-        } else {
-            // Handle validation errors
-            const errors = data.errors || {};
-            Object.keys(errors).forEach(field => {
-                const input = form.querySelector(`[name="${field}"]`);
-                if (input) {
-                    input.classList.add('border-red-500');
-                    const errorElement = document.createElement('p');
-                    errorElement.className = 'mt-1 text-sm text-red-600 dark:text-red-400';
-                    errorElement.textContent = errors[field][0];
-                    input.parentNode.appendChild(errorElement);
-                }
-            });
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        const errorAlert = document.createElement('div');
-        errorAlert.className = 'mb-6 p-4 bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 rounded-lg shadow-sm';
-        errorAlert.innerHTML = `
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
-                <div class="ml-3">
-                    <p class="text-sm font-medium text-red-800 dark:text-red-200">Error creating customer. Please try again.</p>
-                </div>
-            </div>`;
-        
-        // Insert error alert after the header
-        const header = document.querySelector('.mb-8');
-        if (header) {
-            header.insertAdjacentElement('afterend', errorAlert);
-            
-            // Remove the alert after 5 seconds
-            setTimeout(() => {
-                errorAlert.style.opacity = '0';
-                errorAlert.style.transition = 'opacity 0.5s ease-in-out';
-                setTimeout(() => errorAlert.remove(), 500);
-            }, 5000);
-        }
-    });
-});
-
-// Add these JavaScript functions after your existing scripts
-function editDevice(deviceId, brand, model) {
-    // Store the device ID being edited
-    window.editingDeviceId = deviceId;
-    
-    // Show the add device form and populate it with current values
-    showAddDeviceForm();
-    
-    // Update form title and button text to reflect edit mode
-    document.querySelector('#add-device-form h3').textContent = 'Edit Device';
-    document.querySelector('#add-device-form button[type="submit"]').textContent = 'Update Device';
-    
-    // Populate form fields with safe values
-    document.getElementById('new-device-brand').value = brand || '';
-    document.getElementById('new-device-model').value = model || '';
-    
-    // Update the form submission handler for editing
-    const deviceForm = document.getElementById('deviceForm');
-    deviceForm.onsubmit = function(e) {
-        // Ensure the form doesn't trigger a page reload
-        e.preventDefault();
-        e.stopPropagation();
-        
-        const formData = new FormData();
-        formData.append('_method', 'PUT');
-        formData.append('brand', document.getElementById('new-device-brand').value);
-        formData.append('model', document.getElementById('new-device-model').value);
-        formData.append('_token', csrfToken);
-
-        // Show loading state on button
-        const submitButton = document.querySelector('#add-device-form button[type="submit"]');
-        const originalText = submitButton.textContent;
-        submitButton.disabled = true;
-        submitButton.innerHTML = `
-            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Updating...
-        `;
-
-        fetch(`/devices/${deviceId}`, {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': csrfToken,
-                'Cache-Control': 'no-cache'
-            },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Show success message
-                const successMessage = document.createElement('div');
-                successMessage.className = 'mb-4 p-4 bg-green-50 dark:bg-green-900/50 border-l-4 border-green-500 rounded-lg';
-                successMessage.innerHTML = `
-                    <div class="flex items-center">
-                        <svg class="h-5 w-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        <span class="text-sm text-green-700 dark:text-green-300">${data.message || 'Device updated successfully'}</span>
-                    </div>
-                `;
-                const deviceForm = document.getElementById('add-device-form');
-                deviceForm.insertBefore(successMessage, deviceForm.firstChild);
-                
-                // Remove success message after 3 seconds
-                setTimeout(() => successMessage.remove(), 3000);
-                
-                // Reset the form but keep it visible for further edits
-                resetDeviceForm();
-                
-                // Reset the editing device ID
-                window.editingDeviceId = null;
-                
-                // Reset the form submission handler
-                deviceForm.onsubmit = null;
-                
-                // Restore button state
-                submitButton.disabled = false;
-                submitButton.textContent = 'Add Device';
-                
-                // Update the specific device in the UI without refreshing everything
-                if (data.device) {
-                    // Try to find and update the existing device element
-                    updateDeviceInUI(data.device);
-                } else {
-                    // If the device data is not returned, refresh the entire list, but don't show the modal again since it's already shown
-                    refreshDeviceList(currentCustomerId);
-                }
-            } else {
-                // Show error message
-                const errorMessage = document.createElement('div');
-                errorMessage.className = 'mb-4 p-4 bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 rounded-lg';
-                errorMessage.innerHTML = `
-                    <div class="flex items-center">
-                        <svg class="h-5 w-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        <span class="text-sm text-red-700 dark:text-red-300">${data.message || 'Error updating device'}</span>
-                    </div>
-                `;
-                const deviceForm = document.getElementById('add-device-form');
-                deviceForm.insertBefore(errorMessage, deviceForm.firstChild);
-                
-                // Remove error message after 3 seconds
-                setTimeout(() => errorMessage.remove(), 3000);
-                
-                // Restore button state
-                submitButton.disabled = false;
-                submitButton.textContent = originalText;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            
-            // Show error message
-            const errorMessage = document.createElement('div');
-            errorMessage.className = 'mb-4 p-4 bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 rounded-lg';
-            errorMessage.innerHTML = `
-                <div class="flex items-center">
-                    <svg class="h-5 w-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <span class="text-sm text-red-700 dark:text-red-300">Error updating device</span>
-                </div>
-            `;
-            const deviceForm = document.getElementById('add-device-form');
-            deviceForm.insertBefore(errorMessage, deviceForm.firstChild);
-            
-            // Remove error message after 3 seconds
-            setTimeout(() => errorMessage.remove(), 3000);
-            
-            // Restore button state
-            submitButton.disabled = false;
-            submitButton.textContent = originalText;
-        });
-        
-        // Return false to make absolutely sure no page reload occurs
-        return false;
-    };
 }
 
-// Function to update a specific device in the UI without refreshing everything
-function updateDeviceInUI(device) {
-    if (!device || !device.id) return;
-    
-    // Find the existing device element
-    const deviceElement = document.querySelector(`[data-device-id="${device.id}"]`);
-    if (!deviceElement) {
-        // If the element doesn't exist, refresh the entire list
-        openViewModal(currentCustomerId);
-        return;
-    }
-    
-    // Get status class based on device status
-    let statusClass = 'bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-300';
-    let statusText = device.status || 'Unknown';
-    
-    if (device.status) {
-        const status = device.status.toLowerCase();
-        switch(status) {
-            case 'completed':
-                statusClass = 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300';
-                break;
-            case 'repairing':
-            case 'pending':
-                statusClass = 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300';
-                break;
-            case 'received':
-                statusClass = 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300';
-                break;
-        }
-        statusText = statusText.charAt(0).toUpperCase() + statusText.slice(1);
-    }
-    
-    // Update the device element's content
-    deviceElement.innerHTML = `
-        <div class="flex items-center justify-between">
-            <div class="flex items-start space-x-3">
-                <div class="h-10 w-10 flex-shrink-0 rounded-full customer-avatar avatar-${(device.brand?.charAt(0) || 'a').toLowerCase()} flex items-center justify-center text-sm font-bold">
-                    ${(device.brand?.charAt(0) || 'A').toUpperCase()}
-                </div>
-                <div>
-                    <h3 class="text-base font-medium text-gray-900 dark:text-white">${device.brand ? `${device.brand} ${device.model}` : 'Unknown Device'}</h3>
-                    <div class="mt-1 flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
-                        <span class="font-medium">${device.brand || ''}</span>
-                        ${device.brand && device.model ? '<span>&bull;</span>' : ''}
-                        <span>${device.model || ''}</span>
-                        <span class="ml-2 px-2.5 py-0.5 text-xs font-medium rounded-full ${statusClass}">
-                            ${statusText}
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <div class="flex items-center space-x-2">
-                <button type="button"
-                    onclick="editDevice(${device.id}, '${device.brand?.replace(/'/g, "\\'")}', '${device.model?.replace(/'/g, "\\'")}')"
-                    class="inline-flex items-center justify-center p-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors shadow-sm">
-                    <svg class="h-4 w-4 text-indigo-500 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg>
-                </button>
-                <button type="button"
-                    onclick="createRepairForDevice(currentCustomerId, ${device.id}, '${device.brand?.replace(/'/g, "\\'")}', '${device.model?.replace(/'/g, "\\'")}')"
-                    class="inline-flex items-center justify-center p-2 border border-indigo-500 dark:border-indigo-400 rounded-lg text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-white dark:bg-gray-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors shadow-sm">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg>
-                </button>
-                <button type="button"
-                    onclick="deleteDevice(event, ${device.id})"
-                    class="inline-flex items-center justify-center p-2 border border-red-500 dark:border-red-400 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 bg-white dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-900/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors shadow-sm">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                </button>
-            </div>
-        </div>
-    `;
-}
-
-function deleteDevice(event, deviceId) {
-    // Prevent any default action or bubbling
-    event.preventDefault();
-    event.stopPropagation();
-    
-    if (!confirm('Are you sure you want to delete this device? This action cannot be undone.')) {
-        return false;
-    }
-    
-    // Remember if the add device form was visible
-    const addDeviceFormVisible = !document.getElementById('add-device-form').classList.contains('hidden');
-
-    // Show loading state
-    const button = event.target.closest('button');
-    const originalContent = button.innerHTML;
-    button.disabled = true;
-    button.innerHTML = `
-        <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-    `;
-
-    fetch(`/devices/${deviceId}`, {
-        method: 'DELETE',
+function editDevice(deviceId) {
+    fetch(`/devices/${deviceId}/edit`, {
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': csrfToken,
-            'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Cache-Control': 'no-cache, no-store'
+            'X-CSRF-TOKEN': csrfToken
         }
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error('Network response was not ok');
         }
         return response.json();
     })
     .then(data => {
-        if (data.success) {
-            // Show success message
-            const devicesContainer = document.getElementById('view-customer-devices');
-            const successMessage = document.createElement('div');
-            successMessage.className = 'mb-4 p-4 bg-green-50 dark:bg-green-900/50 border-l-4 border-green-500 rounded-lg';
-            successMessage.innerHTML = `
-                <div class="flex items-center">
-                    <svg class="h-5 w-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                    </svg>
-                    <span class="text-sm text-green-700 dark:text-green-300">${data.message || 'Device deleted successfully'}</span>
-                </div>
-            `;
-            devicesContainer.insertBefore(successMessage, devicesContainer.firstChild);
-            
-            // Remove success message after 3 seconds
-            setTimeout(() => successMessage.remove(), 3000);
-            
-            // Refresh the devices list without reopening the modal
-            refreshDeviceList(currentCustomerId);
-            
-            // Restore the add device form state if it was visible
-            if (addDeviceFormVisible) {
-                document.getElementById('add-device-form').classList.remove('hidden');
-            }
-        } else {
-            throw new Error(data.message || 'Error deleting device');
-        }
+        const device = data.device;
+        document.getElementById('edit-device-brand').value = device.brand;
+        document.getElementById('edit-device-model').value = device.model;
+        document.getElementById('editDeviceForm').action = `/devices/${deviceId}`;
+        // Add method override for PUT request
+        const methodInput = document.createElement('input');
+        methodInput.type = 'hidden';
+        methodInput.name = '_method';
+        methodInput.value = 'PUT';
+        document.getElementById('editDeviceForm').appendChild(methodInput);
+        showModal('editDeviceModal', 'editDeviceModalContent', 'editDeviceModalOverlay');
     })
     .catch(error => {
         console.error('Error:', error);
-        
-        // Show error message
-        const devicesContainer = document.getElementById('view-customer-devices');
-        const errorMessage = document.createElement('div');
-        errorMessage.className = 'mb-4 p-4 bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 rounded-lg';
-        errorMessage.innerHTML = `
-            <div class="flex items-center">
-                <svg class="h-5 w-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <span class="text-sm text-red-700 dark:text-red-300">${error.message}</span>
-            </div>
-        `;
-        devicesContainer.insertBefore(errorMessage, devicesContainer.firstChild);
-        
-        // Remove error message after 3 seconds
-        setTimeout(() => errorMessage.remove(), 3000);
-        
-        // Restore button state
-        button.disabled = false;
-        button.innerHTML = originalContent;
-        
-        // Restore the add device form state if it was visible
-        if (addDeviceFormVisible) {
-            document.getElementById('add-device-form').classList.remove('hidden');
-        }
+        showErrorMessage('Error loading device details');
     });
-
-    return false;
 }
 
-// Add these new JavaScript functions before the closing script tag
-function handleCustomerDelete(event) {
+// Form handling functions
+function handleCustomerFormSubmit(event) {
     event.preventDefault();
     const form = event.target;
-    const row = form.closest('.customer-row');
-    const deleteButton = form.querySelector('button[type="submit"]');
-    const originalButtonContent = deleteButton.innerHTML;
-    
-    if (!confirm('Are you sure you want to delete this customer? This action cannot be undone.')) {
-        return false;
-    }
-
-    // Show loading state
-    deleteButton.disabled = true;
-    deleteButton.innerHTML = `
-        <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-    `;
+    const formData = new FormData(form);
 
     fetch(form.action, {
-        method: 'DELETE',
+        method: 'POST',
+        body: formData,
         headers: {
-            'X-Requested-With': 'XMLHttpRequest',
             'X-CSRF-TOKEN': csrfToken,
-            'Accept': 'application/json'
+            'X-Requested-With': 'XMLHttpRequest'
         }
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Add fade out animation
-            row.classList.add('fade-out');
-            
-            // Show success message
-            const successAlert = document.createElement('div');
-            successAlert.className = 'success-alert mb-6 p-4 bg-green-50 dark:bg-green-900/50 border-l-4 border-green-500 rounded-lg shadow-sm fade-in';
-            successAlert.innerHTML = `
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <svg class="h-5 w-5 text-green-500 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium text-green-800 dark:text-green-200">${data.message}</p>
-                    </div>
-                </div>`;
-            
-            const tableContainer = document.querySelector('.bg-white.dark\\:bg-gray-800.rounded-lg.shadow-sm.overflow-hidden');
-            tableContainer.insertBefore(successAlert, tableContainer.firstChild);
-
-            // Remove success message after 3 seconds
-            setTimeout(() => {
-                successAlert.style.opacity = '0';
-                successAlert.style.transform = 'translateY(-10px)';
-                successAlert.style.transition = 'all 0.3s ease-in-out';
-                setTimeout(() => successAlert.remove(), 300);
-            }, 3000);
-            
-            // Remove the row after animation completes
-            setTimeout(() => {
-                row.remove();
-                
-                // Check if table is empty and show the "No customers found" message
-                const tbody = document.querySelector('table tbody');
-                if (!tbody.querySelector('tr:not(.fade-out)')) {
-                    const noCustomersRow = document.createElement('tr');
-                    noCustomersRow.className = 'fade-in';
-                    noCustomersRow.innerHTML = `
-                        <td colspan="4" class="px-6 py-8 text-center">
-                            <div class="flex flex-col items-center">
-                                <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-                                </svg>
-                                <p class="mt-4 text-gray-500 dark:text-gray-400 text-base">No customers found</p>
-                                <button type="button" 
-                                    onclick="openModal()"
-                                    class="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
-                                    <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                                    </svg>
-                                    Add Your First Customer
-                                </button>
-                            </div>
-                        </td>
-                    `;
-                    tbody.appendChild(noCustomersRow);
-                }
-            }, 500);
+            closeModal();
+            showSuccessMessage(data.message);
+            setTimeout(() => window.location.reload(), 1000);
         } else {
-            // Show error message
-            const errorAlert = document.createElement('div');
-            errorAlert.className = 'mb-6 p-4 bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 rounded-lg shadow-sm fade-in';
-            errorAlert.innerHTML = `
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <svg class="h-5 w-5 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium text-red-800 dark:text-red-200">${data.message || 'Error deleting customer'}</p>
-                    </div>
-                </div>`;
-            
-            const tableContainer = document.querySelector('.bg-white.dark\\:bg-gray-800.rounded-lg.shadow-sm.overflow-hidden');
-            tableContainer.insertBefore(errorAlert, tableContainer.firstChild);
-
-            // Remove error message after 3 seconds
-            setTimeout(() => {
-                errorAlert.style.opacity = '0';
-                errorAlert.style.transform = 'translateY(-10px)';
-                errorAlert.style.transition = 'all 0.3s ease-in-out';
-                setTimeout(() => errorAlert.remove(), 300);
-            }, 3000);
-
-            // Reset button state
-            deleteButton.disabled = false;
-            deleteButton.innerHTML = originalButtonContent;
+            showErrorMessage(data.message || 'Error creating customer');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        
-        // Reset button state
-        deleteButton.disabled = false;
-        deleteButton.innerHTML = originalButtonContent;
-        
-        // Show error message
-        const errorAlert = document.createElement('div');
-        errorAlert.className = 'mb-6 p-4 bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 rounded-lg shadow-sm fade-in';
-        errorAlert.innerHTML = `
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
-                <div class="ml-3">
-                    <p class="text-sm font-medium text-red-800 dark:text-red-200">Error deleting customer. Please try again.</p>
-                </div>
-            </div>`;
-        
-        const tableContainer = document.querySelector('.bg-white.dark\\:bg-gray-800.rounded-lg.shadow-sm.overflow-hidden');
-        tableContainer.insertBefore(errorAlert, tableContainer.firstChild);
-
-        // Remove error message after 3 seconds
-        setTimeout(() => {
-            errorAlert.style.opacity = '0';
-            errorAlert.style.transform = 'translateY(-10px)';
-            errorAlert.style.transition = 'all 0.3s ease-in-out';
-            setTimeout(() => errorAlert.remove(), 300);
-        }, 3000);
+        showErrorMessage('Error creating customer');
     });
-
-    return false;
 }
 
-// Add this JavaScript code after your existing scripts
+// Initialize page
 document.addEventListener('DOMContentLoaded', function() {
-    // Handle all delete customer forms
-    document.querySelectorAll('.delete-customer-form').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const row = this.closest('.customer-row');
-            const deleteButton = this.querySelector('button[type="submit"]');
-            const originalButtonContent = deleteButton.innerHTML;
-            
-            if (!confirm('Are you sure you want to delete this customer? This action cannot be undone.')) {
-                return false;
-            }
-
-            // Show loading state
-            deleteButton.disabled = true;
-            deleteButton.innerHTML = `
-                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-            `;
-
-            fetch(this.action, {
-                method: 'DELETE',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': csrfToken,
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Add fade out animation
-                    row.classList.add('fade-out');
-                    
-                    // Show success message
-                    const successAlert = document.createElement('div');
-                    successAlert.className = 'success-alert mb-6 p-4 bg-green-50 dark:bg-green-900/50 border-l-4 border-green-500 rounded-lg shadow-sm fade-in';
-                    successAlert.innerHTML = `
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <svg class="h-5 w-5 text-green-500 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm font-medium text-green-800 dark:text-green-200">${data.message}</p>
-                            </div>
-                        </div>`;
-                    
-                    const tableContainer = document.querySelector('.bg-white.dark\\:bg-gray-800.rounded-lg.shadow-sm.overflow-hidden');
-                    tableContainer.insertBefore(successAlert, tableContainer.firstChild);
-
-                    // Remove success message after 3 seconds
-                    setTimeout(() => {
-                        successAlert.style.opacity = '0';
-                        successAlert.style.transform = 'translateY(-10px)';
-                        successAlert.style.transition = 'all 0.3s ease-in-out';
-                        setTimeout(() => successAlert.remove(), 300);
-                    }, 3000);
-                    
-                    // Remove the row after animation completes
-                    setTimeout(() => {
-                        row.remove();
-                        
-                        // Check if table is empty and show the "No customers found" message
-                        const tbody = document.querySelector('table tbody');
-                        if (!tbody.querySelector('tr:not(.fade-out)')) {
-                            const noCustomersRow = document.createElement('tr');
-                            noCustomersRow.className = 'fade-in';
-                            noCustomersRow.innerHTML = `
-                                <td colspan="4" class="px-6 py-8 text-center">
-                                    <div class="flex flex-col items-center">
-                                        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-                                        </svg>
-                                        <p class="mt-4 text-gray-500 dark:text-gray-400 text-base">No customers found</p>
-                                        <button type="button" 
-                                            onclick="openModal()"
-                                            class="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
-                                            <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                                            </svg>
-                                            Add Your First Customer
-                                        </button>
-                                    </div>
-                                </td>
-                            `;
-                            tbody.appendChild(noCustomersRow);
-                        }
-                    }, 500);
-                } else {
-                    // Show error message
-                    const errorAlert = document.createElement('div');
-                    errorAlert.className = 'mb-6 p-4 bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 rounded-lg shadow-sm fade-in';
-                    errorAlert.innerHTML = `
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <svg class="h-5 w-5 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm font-medium text-red-800 dark:text-red-200">${data.message || 'Error deleting customer'}</p>
-                            </div>
-                        </div>`;
-                    
-                    const tableContainer = document.querySelector('.bg-white.dark\\:bg-gray-800.rounded-lg.shadow-sm.overflow-hidden');
-                    tableContainer.insertBefore(errorAlert, tableContainer.firstChild);
-
-                    // Remove error message after 3 seconds
-                    setTimeout(() => {
-                        errorAlert.style.opacity = '0';
-                        errorAlert.style.transform = 'translateY(-10px)';
-                        errorAlert.style.transition = 'all 0.3s ease-in-out';
-                        setTimeout(() => errorAlert.remove(), 300);
-                    }, 3000);
-
-                    // Reset button state
-                    deleteButton.disabled = false;
-                    deleteButton.innerHTML = originalButtonContent;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                
-                // Reset button state
-                deleteButton.disabled = false;
-                deleteButton.innerHTML = originalButtonContent;
-                
-                // Show error message
-                const errorAlert = document.createElement('div');
-                errorAlert.className = 'mb-6 p-4 bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 rounded-lg shadow-sm fade-in';
-                errorAlert.innerHTML = `
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-medium text-red-800 dark:text-red-200">Error deleting customer. Please try again.</p>
-                        </div>
-                    </div>`;
-                
-                const tableContainer = document.querySelector('.bg-white.dark\\:bg-gray-800.rounded-lg.shadow-sm.overflow-hidden');
-                tableContainer.insertBefore(errorAlert, tableContainer.firstChild);
-
-                // Remove error message after 3 seconds
-                setTimeout(() => {
-                    errorAlert.style.opacity = '0';
-                    errorAlert.style.transform = 'translateY(-10px)';
-                    errorAlert.style.transition = 'all 0.3s ease-in-out';
-                    setTimeout(() => errorAlert.remove(), 300);
-                }, 3000);
-            });
-        });
-    });
-
-    // Initialize delete confirmation
-    initDeleteConfirmation();
-
-    // Handle customer highlighting
-    const highlightedCustomerId = new URLSearchParams(window.location.search).get('highlight');
-    if (highlightedCustomerId) {
-        const customerRow = document.getElementById('customer-' + highlightedCustomerId);
-        if (customerRow) {
-            // Scroll to the customer row
-            setTimeout(() => {
-                customerRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                
-                // Add a focus outline for accessibility
-                customerRow.setAttribute('tabindex', '-1');
-                customerRow.focus({ preventScroll: true });
-                
-                // Remove highlight after 5 seconds
-                setTimeout(() => {
-                    customerRow.classList.remove('customer-row-highlight');
-                }, 5000);
-            }, 500);
-        }
-    }
-
-    function initDeleteConfirmation() {
-        // ... existing code ...
-    }
-});
-
-// Function to refresh only the device list without reopening the modal
-function refreshDeviceList(customerId) {
-    // Remember if the add device form was visible
-    const addDeviceFormVisible = !document.getElementById('add-device-form').classList.contains('hidden');
+    // Handle Laravel session flash messages
+    const successMessage = '{{ session('success') }}';
+    const errorMessage = '{{ session('error') }}';
     
-    // Show loading state in the devices container
-    const devicesContainer = document.getElementById('view-customer-devices');
-    if (devicesContainer) {
-        devicesContainer.innerHTML = `
-            <div class="flex justify-center items-center py-8">
-                <svg class="animate-spin h-8 w-8 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-            </div>
-        `;
+    if (successMessage) {
+        showSuccessMessage(successMessage);
     }
     
-    // Use a timestamp to prevent caching
-    const timestamp = new Date().getTime();
-    
-    // Fetch the customer data with its devices
-    fetch(`/customers/${customerId}?_=${timestamp}`, {
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': csrfToken,
-            'Accept': 'application/json',
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.customer) {
-            const customer = data.customer;
-            
-            // Only update the devices section
-            const devicesContainer = document.getElementById('view-customer-devices');
-            if (!devicesContainer) return;
-            
-            devicesContainer.innerHTML = '';
-            
-            if (customer.devices && customer.devices.length > 0) {
-                const devicesList = document.createElement('div');
-                devicesList.className = 'space-y-4';
-                
-                customer.devices.forEach(device => {
-                    const deviceElement = document.createElement('div');
-                    deviceElement.className = 'bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200';
-                    deviceElement.setAttribute('data-device-id', device.id);
-                    
-                    // Get status class based on device status
-                    let statusClass = 'bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-300';
-                    let statusText = device.status || 'Unknown';
-                    
-                    if (device.status) {
-                        const status = device.status.toLowerCase();
-                        switch(status) {
-                            case 'completed':
-                                statusClass = 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300';
-                                break;
-                            case 'repairing':
-                            case 'pending':
-                                statusClass = 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300';
-                                break;
-                            case 'received':
-                                statusClass = 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300';
-                                break;
-                        }
-                        statusText = statusText.charAt(0).toUpperCase() + statusText.slice(1);
-                    }
-                    
-                    // Add the device content
-                    deviceElement.innerHTML = `
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-start space-x-3">
-                                <div class="h-10 w-10 flex-shrink-0 rounded-full customer-avatar avatar-${(device.brand?.charAt(0) || 'a').toLowerCase()} flex items-center justify-center text-sm font-bold">
-                                    ${(device.brand?.charAt(0) || 'A').toUpperCase()}
-                                </div>
-                                <div>
-                                    <h3 class="text-base font-medium text-gray-900 dark:text-white">${device.brand ? `${device.brand} ${device.model}` : 'Unknown Device'}</h3>
-                                    <div class="mt-1 flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
-                                        <span class="font-medium">${device.brand || ''}</span>
-                                        ${device.brand && device.model ? '<span>&bull;</span>' : ''}
-                                        <span>${device.model || ''}</span>
-                                        <span class="ml-2 px-2.5 py-0.5 text-xs font-medium rounded-full ${statusClass}">
-                                            ${statusText}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <button type="button"
-                                    onclick="editDevice(${device.id}, '${device.brand?.replace(/'/g, "\\'")}', '${device.model?.replace(/'/g, "\\'")}')"
-                                    class="inline-flex items-center justify-center p-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors shadow-sm">
-                                    <svg class="h-4 w-4 text-indigo-500 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                    </svg>
-                                </button>
-                                <button type="button"
-                                    onclick="createRepairForDevice(currentCustomerId, ${device.id}, '${device.brand?.replace(/'/g, "\\'")}', '${device.model?.replace(/'/g, "\\'")}')"
-                                    class="inline-flex items-center justify-center p-2 border border-indigo-500 dark:border-indigo-400 rounded-lg text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-white dark:bg-gray-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors shadow-sm">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                    </svg>
-                                </button>
-                                <button type="button"
-                                    onclick="deleteDevice(event, ${device.id})"
-                                    class="inline-flex items-center justify-center p-2 border border-red-500 dark:border-red-400 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 bg-white dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-900/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors shadow-sm">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    devicesList.appendChild(deviceElement);
-                });
-                
-                devicesContainer.appendChild(devicesList);
-            } else {
-                devicesContainer.innerHTML = `
-                    <div class="flex flex-col items-center justify-center h-[180px]">
-                        <svg class="h-12 w-12 text-gray-400 dark:text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                        </svg>
-                        <p class="text-gray-500 dark:text-gray-400 text-center">No devices found for this customer.</p>
-                        <button type="button" 
-                            onclick="showAddDeviceForm()" 
-                            class="mt-3 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                            </svg>
-                            Add First Device
-                        </button>
-                    </div>
-                `;
-            }
-            
-            // Restore the add device form state if it was visible
-            if (addDeviceFormVisible) {
-                document.getElementById('add-device-form').classList.remove('hidden');
-            }
-        } else {
-            console.error('Customer data not found');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        const devicesContainer = document.getElementById('view-customer-devices');
-        if (devicesContainer) {
-            devicesContainer.innerHTML = `
-                <div class="p-4 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 rounded-md">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm text-red-700 dark:text-red-200">
-                                Error loading device data. Please try again.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // Restore the add device form state if it was visible
-            if (addDeviceFormVisible) {
-                document.getElementById('add-device-form').classList.remove('hidden');
-            }
-        }
-    });
-}
-
-// Function to open repair modal with pre-selected customer and device
-function createRepairForDevice(customerId, deviceId, brand, model) {
-    // Close the customer view modal first
-    closeViewModal();
-    
-    // First, set the customer ID in the hidden input
-    document.getElementById('repair_customer_id').value = customerId;
-    
-    // Load devices for this customer
-    loadCustomerDevices(customerId, deviceId);
-    
-    // Open the repair modal
-    openRepairModal();
-}
-
-// Load devices for a specific customer and optionally select a device
-function loadCustomerDevices(customerId, selectedDeviceId = null) {
-    if (!customerId) return;
-    
-    fetch(`/api/customers/${customerId}/devices`)
-        .then(response => response.json())
-        .then(data => {
-            if (data && data.length) {
-                // Update all device selects
-                const deviceSelects = document.querySelectorAll('.device-select');
-                deviceSelects.forEach(select => {
-                    // Clear existing options except the first one
-                    while (select.options.length > 1) {
-                        select.remove(1);
-                    }
-                    
-                    // Add device options
-                    data.forEach(device => {
-                        const option = document.createElement('option');
-                        option.value = device.id;
-                        option.textContent = `${device.brand} ${device.model}`;
-                        select.appendChild(option);
-                    });
-                    
-                    // If selectedDeviceId is provided, select that device
-                    if (selectedDeviceId && select.id === 'initial_device_id') {
-                        select.value = selectedDeviceId;
-                    }
-                    
-                    // Enable the select
-                    select.disabled = false;
-                });
-            }
-        })
-        .catch(error => console.error('Error loading devices:', error));
-}
-
-// Function to handle service selection and update cost
-document.addEventListener('change', function(e) {
-    if (e.target.classList.contains('service-select')) {
-        const selectedOption = e.target.options[e.target.selectedIndex];
-        if (selectedOption && selectedOption.dataset.price) {
-            const costInput = e.target.closest('.repair-item').querySelector('.cost-input');
-            if (costInput) {
-                costInput.value = selectedOption.dataset.price;
-            }
-        }
-    }
-});
-
-// Repair modal functions
-let repairItemIndex = 1;
-
-function openRepairModal() {
-    const modal = document.getElementById('repairModal');
-    const content = document.getElementById('modalContent');
-    
-    if (!modal || !content) {
-        console.error('Repair modal elements not found');
-        return;
-    }
-    
-    // Show modal
-    modal.classList.remove('hidden');
-    
-    // Add a small delay to ensure the transition works
-    setTimeout(() => {
-        // Make overlay visible
-        const overlay = modal.querySelector('.modal-overlay');
-        if (overlay) overlay.classList.add('opacity-100');
-        
-        // Animate content from below
-        content.classList.remove('opacity-0', 'translate-y-4');
-        content.classList.add('opacity-100', 'translate-y-0');
-    }, 10);
-}
-
-function closeRepairModal() {
-    const modal = document.getElementById('repairModal');
-    const content = document.getElementById('modalContent');
-    
-    if (!modal || !content) return;
-    
-    // Animate content disappearing
-    content.classList.remove('opacity-100', 'translate-y-0');
-    content.classList.add('opacity-0', 'translate-y-4');
-    
-    // Fade out overlay
-    const overlay = modal.querySelector('.modal-overlay');
-    if (overlay) overlay.classList.remove('opacity-100');
-    
-    // Hide modal after animation completes
-    setTimeout(() => {
-        modal.classList.add('hidden');
-    }, 300);
-}
-
-function addRepairItem() {
-    const template = document.getElementById('repair-item-template');
-    if (!template) {
-        console.error('Repair item template not found');
-        return;
-    }
-    
-    const clone = template.content.cloneNode(true);
-    
-    // Update indices
-    clone.querySelectorAll('[name*="[INDEX]"]').forEach(element => {
-        element.name = element.name.replace('INDEX', repairItemIndex);
-    });
-    
-    // Get container and append new item
-    const repairItemsContainer = document.getElementById('repair-items');
-    if (repairItemsContainer) {
-        repairItemsContainer.appendChild(clone);
-        
-        // Load devices for the new device select
-        const customerId = document.getElementById('repair_customer_id').value;
-        if (customerId) {
-            const newDeviceSelect = document.querySelectorAll('.device-select')[repairItemIndex];
-            if (newDeviceSelect) {
-                loadCustomerDevices(customerId);
-            }
-        }
-        
-        repairItemIndex++;
-    }
-}
-
-function removeRepairItem(button) {
-    if (button) {
-        const repairItem = button.closest('.repair-item');
-        if (repairItem) {
-            repairItem.remove();
-        }
-    }
-}
-
-// Setup event handlers
-document.addEventListener('DOMContentLoaded', function() {
-    // Close repair modal button
-    const closeBtn = document.getElementById('closeRepairModal');
-    if (closeBtn) {
-        closeBtn.addEventListener('click', closeRepairModal);
-    }
-    
-    // Close modal when clicking outside
-    const repairModal = document.getElementById('repairModal');
-    if (repairModal) {
-        repairModal.addEventListener('click', function(e) {
-            if (e.target === repairModal) {
-                closeRepairModal();
-            }
-        });
-    }
-    
-    // Close modal on Escape key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && repairModal && !repairModal.classList.contains('hidden')) {
-            closeRepairModal();
-        }
-    });
-});
-
-// Setup event handlers
-document.addEventListener('DOMContentLoaded', function() {
-    // Submit repair form with AJAX
-    const repairForm = document.getElementById('repairForm');
-    if (repairForm) {
-        repairForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Show loading state on submit button
-            const submitButton = repairForm.querySelector('button[type="submit"]');
-            const originalButtonText = submitButton.innerHTML;
-            submitButton.disabled = true;
-            submitButton.innerHTML = `
-                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Creating...
-            `;
-            
-            // Submit form via AJAX
-            fetch(repairForm.action, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': csrfToken,
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: new FormData(repairForm)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Show success message
-                    const successAlert = document.createElement('div');
-                    successAlert.className = 'fixed top-4 right-4 z-50 p-4 bg-green-100 border-l-4 border-green-500 rounded-md shadow-md fade-in';
-                    successAlert.innerHTML = `
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <svg class="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm font-medium text-green-800">${data.message || 'Repair created successfully!'}</p>
-                            </div>
-                        </div>
-                    `;
-                    document.body.appendChild(successAlert);
-                    
-                    // Update repairs page table if it exists
-                    updateRepairsTable(data.repair);
-                    
-                    // Close modal
-                    closeRepairModal();
-                    
-                    // Remove success message after 3 seconds
-                    setTimeout(() => {
-                        successAlert.style.opacity = '0';
-                        successAlert.style.transform = 'translateY(-10px)';
-                        successAlert.style.transition = 'all 0.3s ease-in-out';
-                        setTimeout(() => successAlert.remove(), 300);
-                    }, 3000);
-                    
-                    // Reset form
-                    repairForm.reset();
-                    
-                    // Reset repair items (remove all except the first one)
-                    const repairItems = document.querySelectorAll('.repair-item');
-                    for (let i = 1; i < repairItems.length; i++) {
-                        repairItems[i].remove();
-                    }
-                    repairItemIndex = 1;
-                } else {
-                    // Show error message
-                    const errorAlert = document.createElement('div');
-                    errorAlert.className = 'fixed top-4 right-4 z-50 p-4 bg-red-100 border-l-4 border-red-500 rounded-md shadow-md fade-in';
-                    errorAlert.innerHTML = `
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <svg class="h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm font-medium text-red-800">${data.message || 'Error creating repair'}</p>
-                            </div>
-                        </div>
-                    `;
-                    document.body.appendChild(errorAlert);
-                    
-                    // Remove error message after 3 seconds
-                    setTimeout(() => {
-                        errorAlert.style.opacity = '0';
-                        errorAlert.style.transform = 'translateY(-10px)';
-                        errorAlert.style.transition = 'all 0.3s ease-in-out';
-                        setTimeout(() => errorAlert.remove(), 300);
-                    }, 3000);
-                }
-                
-                // Restore button state
-                submitButton.disabled = false;
-                submitButton.innerHTML = originalButtonText;
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                
-                // Show error message
-                const errorAlert = document.createElement('div');
-                errorAlert.className = 'fixed top-4 right-4 z-50 p-4 bg-red-100 border-l-4 border-red-500 rounded-md shadow-md fade-in';
-                errorAlert.innerHTML = `
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-medium text-red-800">An error occurred. Please try again.</p>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(errorAlert);
-                
-                // Remove error message after 3 seconds
-                setTimeout(() => {
-                    errorAlert.style.opacity = '0';
-                    errorAlert.style.transform = 'translateY(-10px)';
-                    errorAlert.style.transition = 'all 0.3s ease-in-out';
-                    setTimeout(() => errorAlert.remove(), 300);
-                }, 3000);
-                
-                // Restore button state
-                submitButton.disabled = false;
-                submitButton.innerHTML = originalButtonText;
-            });
-        });
+    if (errorMessage) {
+        showErrorMessage(errorMessage);
     }
 
-    // Close repair modal button
-    const closeBtn = document.getElementById('closeRepairModal');
-    if (closeBtn) {
-        closeBtn.addEventListener('click', function() {
-            closeRepairModal();
-            // Reset form
-            const form = document.getElementById('repairForm');
-            if (form) {
-                form.reset();
-            }
-        });
-    }
-    
-    // ... existing code ...
-});
-
-// Function to update the repairs table on the repairs page if it exists
-function updateRepairsTable(repair) {
-    // Check if we're on the repairs page or have the repairs table in view
-    const repairsTableBody = document.querySelector('.repairs-page table tbody');
-    if (!repairsTableBody) return; // Not on repairs page or table not found
-    
-    // Create a new row for the repair
-    const newRow = document.createElement('tr');
-    newRow.className = 'table-row-hover fade-in';
-    
-    // Format the date
-    const createdDate = new Date(repair.created_at);
-    const formattedDate = createdDate.toLocaleDateString('en-US', {
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-    
-    // Get the first repair item
-    const firstItem = repair.items[0];
-    const customer = firstItem.device.customer;
-    const device = firstItem.device;
-    const service = firstItem.service;
-    const status = firstItem.status;
-    
-    // Get status class based on repair status
-    let statusClass = 'bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-300';
-    if (status) {
-        switch(status.toLowerCase()) {
-            case 'completed':
-                statusClass = 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300';
-                break;
-            case 'in_progress':
-                statusClass = 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300';
-                break;
-            case 'pending':
-                statusClass = 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300';
-                break;
-            case 'cancelled':
-                statusClass = 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-300';
-                break;
-        }
-    }
-    
-    // Generate avatar color class based on customer name
-    const avatarClass = `avatar-${customer.name.charAt(0).toLowerCase()}`;
-    
-    // Create the row HTML
-    newRow.innerHTML = `
-        <td class="px-6 py-4 whitespace-nowrap">
-            <div class="flex items-center">
-                <div class="flex-shrink-0 h-10 w-10 rounded-full customer-avatar ${avatarClass} flex items-center justify-center font-bold shadow-md">
-                    ${customer.name.charAt(0).toUpperCase()}
-                </div>
-                <div class="ml-4">
-                    <div class="text-sm font-medium text-gray-900 dark:text-white">
-                        <a href="/customers?highlight=${customer.id}" 
-                           class="customer-profile-link text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
-                           onclick="event.stopPropagation();">
-                            ${customer.name}
-                        </a>
-                    </div>
-                    <div class="text-sm text-gray-500 dark:text-gray-400 flex items-center">
-                        <svg class="h-4 w-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-                        </svg>
-                        ${customer.phone}
-                    </div>
-                </div>
-            </div>
-        </td>
-        <td class="px-6 py-4">
-            <div class="text-sm text-gray-900 dark:text-white">
-                <div class="mb-1 flex items-center">
-                    <div class="flex-shrink-0 mr-2">
-                        <svg class="h-5 w-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                        </svg>
-                    </div>
-                    <div>
-                        <span class="font-medium">
-                            ${device.brand} ${device.model}
-                        </span>
-                        ${device.serial_number ? 
-                            `<div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                S/N: ${device.serial_number}
-                            </div>` : ''}
-                    </div>
-                </div>
-            </div>
-        </td>
-        <td class="px-6 py-4">
-            <div class="text-sm text-gray-900 dark:text-white">
-                <div class="mb-1 flex items-center">
-                    <div class="flex-shrink-0 mr-2">
-                        <svg class="h-5 w-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        </svg>
-                    </div>
-                    <div>
-                        <span class="font-medium">${service.name}</span>
-                        <div class="text-xs text-gray-500 dark:text-gray-400">
-                            ₱${service.price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </td>
-        <td class="px-6 py-4 whitespace-nowrap">
-            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
-                ${status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}
-            </span>
-        </td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-            <div class="text-sm text-gray-900 dark:text-white">
-                ${formattedDate}
-            </div>
-
-            ${status === 'pending' ? 
-                `<div class="text-xs text-yellow-600 dark:text-yellow-400 mt-1 font-medium">
-                    <svg class="w-3 h-3 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                    Started on: ${formattedDate}
-                </div>` 
-            : status === 'completed' ?
-                `<div class="text-xs text-green-600 dark:text-green-400 mt-1 font-medium">
-                    <svg class="w-3 h-3 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                    </svg>
-                    Completed on: ${formattedDate}
-                </div>`
-            : status === 'cancelled' ?
-                `<div class="text-xs text-red-600 dark:text-red-400 mt-1 font-medium">
-                    <svg class="w-3 h-3 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                    Cancelled on: ${formattedDate}
-                </div>`
-            : ''
-            }
-        </td>
-        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-            <div class="flex items-center justify-end space-x-2">
-                <a href="/repairs/${repair.id}/edit" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300" title="Edit Repair">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg>
-                </a>
-                <form action="/repairs/${repair.id}" method="POST" class="inline-block">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300" title="Delete Repair" onclick="return confirm('Are you sure you want to delete this repair?');">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                        </svg>
-                    </button>
-                </form>
-            </div>
-        </td>
-    `;
-    
-    // Add the new row to the beginning of the table
-    if (repairsTableBody.firstChild) {
-        repairsTableBody.insertBefore(newRow, repairsTableBody.firstChild);
-    } else {
-        repairsTableBody.appendChild(newRow);
-    }
-    
-    // Highlight the new row
-    setTimeout(() => {
-        newRow.classList.add('bg-green-50', 'dark:bg-green-900/20');
-        setTimeout(() => {
-            newRow.classList.remove('bg-green-50', 'dark:bg-green-900/20');
-            newRow.classList.add('transition-colors', 'duration-1000');
-        }, 2000);
-    }, 300);
-    
-    // Update repair stats if they exist
-    updateRepairStats();
-}
-
-// Function to update repair stats on the repairs page
-function updateRepairStats() {
-    const pendingCount = document.querySelector('.repair-stat-pending');
-    const inProgressCount = document.querySelector('.repair-stat-in-progress');
-    const completedCount = document.querySelector('.repair-stat-completed');
-    const totalCount = document.querySelector('.repair-stat-total');
-    
-    if (pendingCount) {
-        const currentCount = parseInt(pendingCount.textContent);
-        pendingCount.textContent = (currentCount + 1).toString();
-    }
-    
-    if (totalCount) {
-        const currentCount = parseInt(totalCount.textContent);
-        totalCount.textContent = (currentCount + 1).toString();
-    }
-}
-
-// ... existing code ...
-
-// Initialize event handlers
-function initializeEventHandlers() {
-    // Close repair modal button
-    const closeBtn = document.getElementById('closeRepairModal');
-    const repairModal = document.getElementById('repairModal');
-    const modalContent = document.getElementById('modalContent');
-
-    if (closeBtn && repairModal && modalContent) {
-        // Create new button to avoid duplicate listeners
-        const newCloseBtn = closeBtn.cloneNode(true);
-        closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
-
-        // Function to close modal
-        function closeRepairModal() {
-            // Animate content disappearing
-            modalContent.classList.remove('opacity-100', 'translate-y-0');
-            modalContent.classList.add('opacity-0', 'translate-y-4');
-            
-            // Fade out overlay
-            const overlay = repairModal.querySelector('.modal-overlay');
-            if (overlay) overlay.classList.remove('opacity-100');
-            
-            // Hide modal after animation completes
-            setTimeout(() => {
-                repairModal.classList.add('hidden');
-                // Reset form
-                const form = document.getElementById('repairForm');
-                if (form) {
-                    form.reset();
-                }
-            }, 300);
-        }
-
-        // Add click event to new button
-        newCloseBtn.addEventListener('click', closeRepairModal);
-        
-        // Close modal when clicking outside
-        repairModal.addEventListener('click', function(e) {
-            if (e.target === repairModal) {
-                closeRepairModal();
-            }
-        });
-        
-        // Close modal on Escape key
-        const escapeHandler = function(e) {
-            if (e.key === 'Escape' && !repairModal.classList.contains('hidden')) {
-                closeRepairModal();
-            }
-        };
-        
-        // Remove existing keydown listener and add new one
-        document.removeEventListener('keydown', escapeHandler);
-        document.addEventListener('keydown', escapeHandler);
-    }
-}
-
-// Initialize when the document is ready
-document.addEventListener('DOMContentLoaded', initializeEventHandlers);
-
-// Also initialize when the page content changes (for navigation)
-document.addEventListener('turbo:render', initializeEventHandlers);
-document.addEventListener('turbolinks:load', initializeEventHandlers);
-
-// ... existing code ...
-// Initialize event handlers
-function initializeCustomerPage() {
-    // Make functions available globally for inline button onclick handlers
-    window.openModal = openModal;
-    window.closeModal = closeModal;
-    window.openViewModal = openViewModal;
-    window.closeViewModal = closeViewModal;
-    window.openEditModal = openEditModal;
-    window.closeEditModal = closeEditModal;
-    window.createRepairForDevice = createRepairForDevice;
-    window.handleCustomerDelete = handleCustomerDelete;
-    window.refreshDeviceList = refreshDeviceList;
-    
     // Initialize form event listeners
     const customerForm = document.getElementById('customerForm');
     if (customerForm) {
         customerForm.addEventListener('submit', handleCustomerFormSubmit);
     }
 
-    const editCustomerForm = document.getElementById('editCustomerForm');
-    if (editCustomerForm) {
-        editCustomerForm.addEventListener('submit', handleEditFormSubmit);
+    // Initialize edit device form
+    const editDeviceForm = document.getElementById('editDeviceForm');
+    if (editDeviceForm) {
+        editDeviceForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            formData.append('_method', 'PUT'); // Add method override for PUT request
+
+            fetch(this.action, {
+                method: 'POST', // We use POST but override with PUT
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    hideModal('editDeviceModal', 'editDeviceModalContent', 'editDeviceModalOverlay');
+                    // Reload devices in both containers
+                    loadCustomerDevices(selectedCustomerId, 'devices-list');
+                    loadCustomerDevices(selectedCustomerId, 'view-customer-devices');
+                    showSuccessMessage('Device updated successfully');
+                    // Don't automatically open any other modal after update
+                } else {
+                    showErrorMessage(data.message || 'Error updating device');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showErrorMessage('Error updating device');
+            });
+        });
     }
 
     // Initialize delete buttons
     document.querySelectorAll('.delete-customer-form').forEach(form => {
-        form.addEventListener('submit', handleCustomerDelete);
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            if (!confirm('Are you sure you want to delete this customer?')) {
+                return;
+            }
+
+            const formData = new FormData(this);
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    showErrorMessage(data.message || 'Error deleting customer');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showErrorMessage('Error deleting customer');
+            });
+        });
     });
 
-    // Close modals when clicking outside
-    const modals = {
-        'customerModal': closeModal,
-        'viewCustomerModal': closeViewModal,
-        'editCustomerModal': closeEditModal
-    };
-
-    Object.entries(modals).forEach(([modalId, closeFunction]) => {
+    // Initialize modal close events
+    const modalIds = ['customerModal', 'deviceModal', 'addDeviceModal'];
+    modalIds.forEach(modalId => {
         const modal = document.getElementById(modalId);
         if (modal) {
             modal.addEventListener('click', function(event) {
                 if (event.target === this) {
-                    closeFunction();
+                    switch(modalId) {
+                        case 'customerModal':
+                            closeModal();
+                            break;
+                        case 'deviceModal':
+                            closeDeviceModal();
+                            break;
+                        case 'addDeviceModal':
+                            closeAddDeviceModal();
+                            break;
+                    }
                 }
             });
         }
@@ -2994,37 +1204,344 @@ function initializeCustomerPage() {
     // Close modals with escape key
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
-            Object.values(modals).forEach(closeFunction => closeFunction());
+            closeModal();
+            closeDeviceModal();
+            closeAddDeviceModal();
         }
     });
+});
 
-    console.log('Customer page event listeners initialized');
+// View modal functions
+function openViewModal(customerId) {
+    selectedCustomerId = customerId;
+    showModal('viewCustomerModal', 'viewCustomerModalContent', 'viewCustomerModalOverlay');
+    
+    // Show loading state
+    document.getElementById('view-customer-name').textContent = 'Loading...';
+    document.getElementById('view-customer-phone').textContent = 'Loading...';
+    document.getElementById('view-customer-facebook').textContent = 'Loading...';
+    document.getElementById('view-customer-address').textContent = 'Loading...';
+    
+    // Fetch customer details
+    fetch(`/customers/${customerId}/edit`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const customer = data.customer;
+        
+        // Update customer information
+        document.getElementById('view-customer-name').textContent = customer.name;
+        document.getElementById('view-customer-phone').textContent = customer.phone;
+        document.getElementById('view-customer-facebook').textContent = customer.facebook_url || 'Not provided';
+        document.getElementById('view-customer-address').textContent = customer.address || 'Not provided';
+        
+        // Load customer devices in the profile view
+        loadCustomerProfileDevices(customerId);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showErrorMessage('Error loading customer details');
+    });
 }
 
-// Initialize on page load and after Turbo navigation
-document.addEventListener('DOMContentLoaded', initializeCustomerPage);
-document.addEventListener('turbo:load', initializeCustomerPage);
-document.addEventListener('turbo:render', initializeCustomerPage);
+function closeViewModal() {
+    hideModal('viewCustomerModal', 'viewCustomerModalContent', 'viewCustomerModalOverlay');
+}
 
-// Cleanup before navigation
-document.addEventListener('turbo:before-cache', function() {
-    // Reset modal functions
-    const functionsToCleanup = [
-        'openModal',
-        'closeModal',
-        'openViewModal',
-        'closeViewModal',
-        'openEditModal',
-        'closeEditModal',
-        'createRepairForDevice',
-        'handleCustomerDelete',
-        'refreshDeviceList'
-    ];
+// Function to open edit modal
+function openEditModal(customerId) {
+    selectedCustomerId = customerId;
     
-    functionsToCleanup.forEach(function(func) {
-        window[func] = null;
+    // Show loading state
+    const modalContent = document.getElementById('editCustomerModalContent');
+    const form = document.getElementById('editCustomerForm');
+    
+    // Show the modal first
+    showModal('editCustomerModal', 'editCustomerModalContent', 'editCustomerModalOverlay');
+    
+    // Fetch customer data
+    fetch(`/customers/${customerId}/edit`, {
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Update form action
+        form.action = `/customers/${customerId}`;
+        
+        // Fill form fields
+        document.getElementById('edit-name').value = data.customer.name;
+        document.getElementById('edit-phone').value = data.customer.phone || '';
+        document.getElementById('edit-facebook').value = data.customer.facebook_url || '';
+        document.getElementById('edit-address').value = data.customer.address || '';
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showErrorMessage('Error loading customer data');
+        closeEditModal();
     });
+}
+
+// Function to close edit modal
+function closeEditModal() {
+    hideModal('editCustomerModal', 'editCustomerModalContent', 'editCustomerModalOverlay');
+    selectedCustomerId = null;
+    const form = document.getElementById('editCustomerForm');
+    if (form) form.reset();
+}
+
+// Initialize edit form submission
+document.addEventListener('DOMContentLoaded', function() {
+    const editForm = document.getElementById('editCustomerForm');
+    if (editForm) {
+        editForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeEditModal();
+                    showSuccessMessage(data.message);
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showErrorMessage(data.message || 'Error updating customer');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showErrorMessage('Error updating customer');
+            });
+        });
+    }
 });
+
+// Add function to load devices in customer profile
+function loadCustomerProfileDevices(customerId) {
+    loadCustomerDevices(customerId, 'view-customer-devices');
+}
+
+// Device Management Modal functions
+function openDeviceModal(customerId) {
+    selectedCustomerId = customerId;
+    showModal('deviceModal', 'deviceModalContent', 'deviceModalOverlay');
+    loadCustomerDevices(customerId, 'devices-list');
+}
+
+function closeDeviceManagementModal() {
+    hideModal('deviceManagementModal', 'deviceManagementModalContent', 'deviceManagementModalOverlay');
+    selectedCustomerId = null;
+}
+
+// Device management functions
+function loadCustomerDevices(customerId, container = 'device-management-list') {
+    const devicesList = document.getElementById(container);
+    if (!devicesList) {
+        console.error(`Devices list container '${container}' not found`);
+        return;
+    }
+
+    // Show loading state
+    devicesList.innerHTML = `
+        <div class="flex justify-center items-center py-8">
+            <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+        </div>
+    `;
+
+    fetch(`/api/customers/${customerId}/devices`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => Promise.reject(err));
+        }
+        return response.json();
+    })
+    .then(data => {
+        devicesList.innerHTML = '';
+
+        if (!data || data.length === 0) {
+            devicesList.innerHTML = `
+                <div class="text-center py-8">
+                    <div class="mb-4">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No devices found</h3>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by adding a new device.</p>
+                    <button type="button" onclick="openAddDeviceForm()" 
+                        class="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Add New Device
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        data.forEach(device => {
+            const statusClass = {
+                'pending': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+                'in_progress': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+                'completed': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+                'cancelled': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+                'no_repairs': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+            }[device.status] || 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+
+            const deviceElement = document.createElement('div');
+            deviceElement.className = 'bg-white dark:bg-gray-700 shadow rounded-lg p-4 mb-4';
+            deviceElement.innerHTML = `
+                <div class="flex flex-col space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="flex-shrink-0">
+                                <div class="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                                    <svg class="h-6 w-6 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-medium text-gray-900 dark:text-white">${device.brand} ${device.model}</h4>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClass}">
+                                    ${device.status.replace('_', ' ').charAt(0).toUpperCase() + device.status.slice(1).replace('_', ' ')}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="editDevice(${device.id})" 
+                                class="inline-flex items-center px-3 py-1.5 border border-indigo-300 dark:border-indigo-700 text-sm font-medium rounded-md text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/50 hover:bg-indigo-100 dark:hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Edit
+                            </button>
+                            <button onclick="deleteDevice(${device.id})" 
+                                class="inline-flex items-center px-3 py-1.5 border border-red-300 dark:border-red-700 text-sm font-medium rounded-md text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/50 hover:bg-red-100 dark:hover:bg-red-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-200 dark:border-gray-600 pt-4">
+                        <div class="grid grid-cols-4 gap-4 text-sm">
+                            <div>
+                                <span class="text-gray-500 dark:text-gray-400">Pending:</span>
+                                <span class="ml-2 font-medium text-yellow-600 dark:text-yellow-400" id="pending-count-${device.id}">
+                                    <svg class="inline-block h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500 dark:text-gray-400">In Progress:</span>
+                                <span class="ml-2 font-medium text-blue-600 dark:text-blue-400" id="in-progress-count-${device.id}">
+                                    <svg class="inline-block h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500 dark:text-gray-400">Completed:</span>
+                                <span class="ml-2 font-medium text-green-600 dark:text-green-400" id="completed-count-${device.id}">
+                                    <svg class="inline-block h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500 dark:text-gray-400">Cancelled:</span>
+                                <span class="ml-2 font-medium text-red-600 dark:text-red-400" id="cancelled-count-${device.id}">
+                                    <svg class="inline-block h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            devicesList.appendChild(deviceElement);
+
+            // Update the counts after a short delay to simulate loading
+            setTimeout(() => {
+                // Helper function to create check icon
+                const createCheckIcon = (color) => `
+                    <svg class="inline-block h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                `;
+
+                // Update pending count
+                const pendingCount = document.getElementById(`pending-count-${device.id}`);
+                pendingCount.innerHTML = device.pending_repairs_count > 0 ? createCheckIcon() : '0';
+                pendingCount.className = `ml-2 font-medium ${device.pending_repairs_count > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-500 dark:text-gray-400'}`;
+
+                // Update in progress count
+                const inProgressCount = document.getElementById(`in-progress-count-${device.id}`);
+                inProgressCount.innerHTML = device.in_progress_repairs_count > 0 ? createCheckIcon() : '0';
+                inProgressCount.className = `ml-2 font-medium ${device.in_progress_repairs_count > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`;
+
+                // Update completed count
+                const completedCount = document.getElementById(`completed-count-${device.id}`);
+                completedCount.innerHTML = device.completed_repairs_count > 0 ? createCheckIcon() : '0';
+                completedCount.className = `ml-2 font-medium ${device.completed_repairs_count > 0 ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`;
+
+                // Update cancelled count
+                const cancelledCount = document.getElementById(`cancelled-count-${device.id}`);
+                cancelledCount.innerHTML = device.cancelled_repairs_count > 0 ? createCheckIcon() : '0';
+                cancelledCount.className = `ml-2 font-medium ${device.cancelled_repairs_count > 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}`;
+            }, 1000);
+        });
+    })
+    .catch(error => {
+        console.error('Error loading devices:', error);
+        devicesList.innerHTML = `
+            <div class="text-center py-8">
+                <div class="text-red-500 mb-4">
+                    <svg class="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <h3 class="mt-2 text-sm font-medium text-red-800 dark:text-red-200">Error loading devices</h3>
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">${error.message || 'An unexpected error occurred'}</p>
+                <button type="button" onclick="loadCustomerDevices(${customerId}, '${container}')" 
+                    class="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                    <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    Try Again
+                </button>
+            </div>
+        `;
+    });
+}
 </script>
 @endpush
 
@@ -3232,6 +1749,152 @@ document.addEventListener('turbo:before-cache', function() {
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Device Modal -->
+<div id="deviceModal" class="fixed inset-0 z-40 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Background overlay -->
+        <div class="fixed inset-0 bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75 transition-opacity" 
+            aria-hidden="true"
+            id="deviceModalOverlay"></div>
+
+        <!-- Modal panel -->
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            id="deviceModalContent">
+            <div class="bg-white dark:bg-gray-800">
+                <!-- Header -->
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white" id="device-modal-title">Customer Devices</h3>
+                            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Manage customer devices</p>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <button type="button" onclick="openAddDeviceForm()" 
+                                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                </svg>
+                                Add New Device
+                            </button>
+                            <button type="button" onclick="closeDeviceModal()" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+                                <span class="sr-only">Close</span>
+                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div class="px-6 py-4">
+                    <!-- Devices List -->
+                    <div id="devices-list" class="space-y-4">
+                        <!-- Devices will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Device Form Modal -->
+<div id="addDeviceModal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75 transition-opacity" 
+            aria-hidden="true"
+            id="addDeviceModalOverlay"></div>
+
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            id="addDeviceModalContent">
+            <form id="addDeviceForm" onsubmit="handleAddDevice(event)">
+                <div class="bg-white dark:bg-gray-800 px-6 py-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Add New Device</h3>
+                        <button type="button" onclick="closeAddDeviceModal()" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+                            <span class="sr-only">Close</span>
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="brand" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Brand</label>
+                            <input type="text" name="brand" id="brand" required
+                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="model" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Model</label>
+                            <input type="text" name="model" id="model" required
+                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 px-6 py-3 flex justify-end space-x-3">
+                    <button type="button" onclick="closeAddDeviceModal()"
+                        class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Add Device
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Device Modal -->
+<div id="editDeviceModal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75 transition-opacity" 
+            aria-hidden="true"
+            id="editDeviceModalOverlay"></div>
+
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            id="editDeviceModalContent">
+            <form id="editDeviceForm" method="POST">
+                @csrf
+                <div class="bg-white dark:bg-gray-800 px-6 py-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Edit Device</h3>
+                        <button type="button" onclick="hideModal('editDeviceModal', 'editDeviceModalContent', 'editDeviceModalOverlay')" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+                            <span class="sr-only">Close</span>
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="edit-device-brand" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Brand</label>
+                            <input type="text" name="brand" id="edit-device-brand" required
+                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="edit-device-model" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Model</label>
+                            <input type="text" name="model" id="edit-device-model" required
+                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 px-6 py-3 flex justify-end space-x-3">
+                    <button type="button" onclick="hideModal('editDeviceModal', 'editDeviceModalContent', 'editDeviceModalOverlay')"
+                        class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Update Device
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

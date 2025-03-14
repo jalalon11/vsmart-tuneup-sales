@@ -40,11 +40,11 @@ class Device extends Model
         return $this->hasManyThrough(
             Repair::class,
             RepairItem::class,
-            'device_id',
-            'id',
-            'id',
-            'repair_id'
-        );
+            'device_id',  // Foreign key on repair_items table
+            'id',         // Local key on repairs table
+            'id',         // Local key on devices table
+            'repair_id'   // Foreign key on repair_items table
+        )->select('repairs.*')->distinct();  // Select all fields from repairs table and ensure distinct results
     }
 
     /**
