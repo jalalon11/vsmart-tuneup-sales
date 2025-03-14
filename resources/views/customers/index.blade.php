@@ -487,15 +487,20 @@
             id="viewCustomerModalOverlay"></div>
 
         <!-- Modal panel -->
-        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             id="viewCustomerModalContent">
             <div class="bg-white dark:bg-gray-800">
-                <!-- Header -->
+                <!-- Header with Avatar -->
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white" id="view-modal-title">Customer Profile</h3>
-                            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">View customer information</p>
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="h-12 w-12 rounded-full customer-avatar flex items-center justify-center text-xl font-bold" id="view-customer-avatar">
+                                <!-- First letter will be inserted here -->
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-gray-900 dark:text-white" id="view-customer-name">Loading...</h3>
+                                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Customer Profile</p>
+                            </div>
                         </div>
                         <button type="button" onclick="closeViewModal()" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
                             <span class="sr-only">Close</span>
@@ -508,34 +513,83 @@
 
                 <!-- Content -->
                 <div class="px-6 py-4">
-                    <div class="space-y-6">
-                        <!-- Customer Information -->
-                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                            <div class="border-b border-gray-200 dark:border-gray-700 p-4">
-                                <h4 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                                    <svg class="w-5 h-5 mr-2 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                    </svg>
-                                    Customer Information
-                                </h4>
-                            </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Customer Information Card -->
+                        <div class="lg:col-span-1">
+                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                                <div class="border-b border-gray-200 dark:border-gray-700 p-4">
+                                    <h4 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                                        <svg class="w-5 h-5 mr-2 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                        </svg>
+                                        Contact Details
+                                    </h4>
+                                </div>
 
-                            <div class="p-4 space-y-4">
-                                <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
-                                    <label class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</label>
-                                    <p class="mt-1 text-base font-medium text-gray-900 dark:text-white" id="view-customer-name"></p>
+                                <div class="p-4 space-y-4">
+                                    <div class="space-y-1">
+                                        <label class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Phone</label>
+                                        <p class="text-sm font-medium text-gray-900 dark:text-white flex items-center">
+                                            <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                            </svg>
+                                            <span id="view-customer-phone">Loading...</span>
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="space-y-1">
+                                        <label class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Facebook Profile</label>
+                                        <p class="text-sm font-medium text-gray-900 dark:text-white flex items-center">
+                                            <svg class="w-4 h-4 mr-2 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                            </svg>
+                                            <span id="view-customer-facebook" class="truncate">Loading...</span>
+                                        </p>
+                                    </div>
+
+                                    <div class="space-y-1">
+                                        <label class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Address</label>
+                                        <p class="text-sm font-medium text-gray-900 dark:text-white flex items-start">
+                                            <svg class="w-4 h-4 mr-2 mt-0.5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            </svg>
+                                            <span id="view-customer-address" class="whitespace-pre-wrap">Loading...</span>
+                                        </p>
+                                    </div>
                                 </div>
-                                <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
-                                    <label class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Phone</label>
-                                    <p class="mt-1 text-base font-medium text-gray-900 dark:text-white" id="view-customer-phone"></p>
+                            </div>
+                        </div>
+
+                        <!-- Devices List Card -->
+                        <div class="lg:col-span-2">
+                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                                <div class="border-b border-gray-200 dark:border-gray-700 p-4">
+                                    <h4 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                                        <svg class="w-5 h-5 mr-2 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                        </svg>
+                                        Registered Devices
+                                    </h4>
                                 </div>
-                                <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
-                                    <label class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Facebook Profile</label>
-                                    <p class="mt-1 text-base font-medium text-gray-900 dark:text-white overflow-hidden text-ellipsis" id="view-customer-facebook"></p>
-                                </div>
-                                <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
-                                    <label class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Address</label>
-                                    <p class="mt-1 text-base font-medium text-gray-900 dark:text-white" id="view-customer-address"></p>
+
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                        <thead class="bg-gray-50 dark:bg-gray-700/50">
+                                            <tr>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Device</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Last Repair</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="view-customer-devices" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                            <tr>
+                                                <td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                                    Loading devices...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -672,56 +726,96 @@ function showErrorMessage(message) {
     }, 5000);
 }
 
-// Modal utility functions
+// Function to show modals
 function showModal(modalId, contentId, overlayId) {
     const modal = document.getElementById(modalId);
-    const content = document.getElementById(contentId);
     const overlay = document.getElementById(overlayId);
+    const content = document.getElementById(contentId);
     
-    if (!modal || !content || !overlay) {
-        console.error('Modal elements not found');
-        return;
+    if (modal && overlay && content) {
+        modal.classList.remove('hidden');
+        
+        // Add entry animation
+        overlay.classList.add('opacity-0');
+        content.classList.add('opacity-0', 'translate-y-4');
+        
+        // Force a reflow to enable the transition
+        void overlay.offsetWidth;
+        
+        // Add transition classes
+        overlay.classList.add('transition-opacity', 'duration-300');
+        content.classList.add('transition-all', 'duration-300');
+        
+        // Show overlay and content
+        overlay.classList.remove('opacity-0');
+        content.classList.remove('opacity-0', 'translate-y-4');
     }
-
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-    
-    requestAnimationFrame(() => {
-        overlay.classList.add('opacity-100');
-        content.classList.remove('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
-        content.classList.add('opacity-100', 'translate-y-0', 'sm:scale-100');
-    });
 }
 
+// Function to hide modals
 function hideModal(modalId, contentId, overlayId) {
     const modal = document.getElementById(modalId);
-    const content = document.getElementById(contentId);
     const overlay = document.getElementById(overlayId);
+    const content = document.getElementById(contentId);
     
-    if (!modal || !content || !overlay) {
-        console.error('Modal elements not found');
-        return;
+    if (modal && overlay && content) {
+        // Add exit animation
+        overlay.classList.add('transition-opacity', 'duration-200');
+        content.classList.add('transition-all', 'duration-200');
+        
+        overlay.classList.add('opacity-0');
+        content.classList.add('opacity-0', 'translate-y-4');
+        
+        // Hide modal after animation
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            overlay.classList.remove('transition-opacity', 'duration-200', 'opacity-0');
+            content.classList.remove('transition-all', 'duration-200', 'opacity-0', 'translate-y-4');
+        }, 200);
     }
-
-    overlay.classList.remove('opacity-100');
-    content.classList.remove('opacity-100', 'translate-y-0', 'sm:scale-100');
-    content.classList.add('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
-    
-    setTimeout(() => {
-        modal.classList.add('hidden');
-        document.body.style.overflow = 'auto';
-    }, 200);
 }
 
-// Customer modal functions
+// Add Customer modal functions
 function openModal() {
     showModal('customerModal', 'customerModalContent', 'customerModalOverlay');
+    
+    // Reset form when modal is opened
+    document.getElementById('customerForm').reset();
 }
 
 function closeModal() {
     hideModal('customerModal', 'customerModalContent', 'customerModalOverlay');
-    document.getElementById('customerForm').reset();
 }
+
+// Make functions globally available for SPA navigation
+window.showModal = showModal;
+window.hideModal = hideModal;
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.openViewModal = openViewModal;
+window.closeViewModal = closeViewModal;
+window.openDeviceModal = openDeviceModal;
+window.closeDeviceModal = closeDeviceModal;
+window.openAddDeviceModal = openAddDeviceModal;
+window.closeAddDeviceModal = closeAddDeviceModal;
+window.openEditModal = openEditModal;
+window.closeEditModal = closeEditModal;
+
+// All of these functions will be defined later in the script
+// We'll assign them after they are defined
+document.addEventListener('DOMContentLoaded', function() {
+    // Wait until all functions are defined
+    setTimeout(() => {
+        if (typeof openViewModal === 'function') window.openViewModal = openViewModal;
+        if (typeof closeViewModal === 'function') window.closeViewModal = closeViewModal;
+        if (typeof openDeviceModal === 'function') window.openDeviceModal = openDeviceModal;
+        if (typeof closeDeviceModal === 'function') window.closeDeviceModal = closeDeviceModal;
+        if (typeof openAddDeviceModal === 'function') window.openAddDeviceModal = openAddDeviceModal;
+        if (typeof closeAddDeviceModal === 'function') window.closeAddDeviceModal = closeAddDeviceModal;
+        if (typeof openEditModal === 'function') window.openEditModal = openEditModal;
+        if (typeof closeEditModal === 'function') window.closeEditModal = closeEditModal;
+    }, 100);
+});
 
 // Device modal functions
 function openDeviceModal(customerId) {
@@ -1234,9 +1328,19 @@ function openViewModal(customerId) {
         
         // Update customer information
         document.getElementById('view-customer-name').textContent = customer.name;
-        document.getElementById('view-customer-phone').textContent = customer.phone;
+        document.getElementById('view-customer-phone').textContent = customer.phone || 'Not provided';
         document.getElementById('view-customer-facebook').textContent = customer.facebook_url || 'Not provided';
         document.getElementById('view-customer-address').textContent = customer.address || 'Not provided';
+        
+        // Update avatar with first letter and appropriate class
+        const avatarElement = document.getElementById('view-customer-avatar');
+        const firstLetter = customer.name.charAt(0).toLowerCase();
+        avatarElement.textContent = customer.name.charAt(0).toUpperCase();
+        
+        // Remove any existing avatar classes
+        avatarElement.className = avatarElement.className.replace(/avatar-[a-z0-9]/g, '');
+        // Add new avatar class
+        avatarElement.classList.add(`avatar-${firstLetter}`);
         
         // Load customer devices in the profile view
         loadCustomerProfileDevices(customerId);
@@ -1331,7 +1435,84 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Add function to load devices in customer profile
 function loadCustomerProfileDevices(customerId) {
-    loadCustomerDevices(customerId, 'view-customer-devices');
+    fetch(`/api/customers/${customerId}/devices`, {
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        const deviceTableBody = document.getElementById('view-customer-devices');
+        
+        if (data && data.length > 0) {
+            deviceTableBody.innerHTML = data.map(device => `
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-8 w-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-300">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <div class="text-sm font-medium text-gray-900 dark:text-white">
+                                    ${device.brand} ${device.model}
+                                </div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400">
+                                    Added ${new Date(device.created_at).toLocaleDateString()}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            ${device.status === 'received' ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300' :
+                            device.status === 'in_repair' ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300' :
+                            device.status === 'completed' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300' :
+                            'bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-300'}">
+                            ${device.status ? device.status.replace('_', ' ').charAt(0).toUpperCase() + device.status.slice(1) : 'N/A'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        ${device.latest_repair ? `
+                            <div class="text-sm text-gray-900 dark:text-white">
+                                ${new Date(device.latest_repair.created_at).toLocaleDateString()}
+                            </div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">
+                                ${device.latest_repair.status.charAt(0).toUpperCase() + device.latest_repair.status.slice(1)}
+                            </div>
+                        ` : `
+                            <div class="text-sm text-gray-500 dark:text-gray-400">No repairs</div>
+                        `}
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            deviceTableBody.innerHTML = `
+                <tr>
+                    <td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                        No devices found
+                    </td>
+                </tr>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('view-customer-devices').innerHTML = `
+            <tr>
+                <td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                    Error loading devices. Please try again.
+                </td>
+            </tr>
+        `;
+    });
 }
 
 // Device Management Modal functions
@@ -1445,7 +1626,7 @@ function loadCustomerDevices(customerId, container = 'device-management-list') {
                             </button>
                         </div>
                     </div>
-                    <div class="border-t border-gray-200 dark:border-gray-600 pt-4">
+                   <!-- <div class="border-t border-gray-200 dark:border-gray-600 pt-4">
                         <div class="grid grid-cols-4 gap-4 text-sm">
                             <div>
                                 <span class="text-gray-500 dark:text-gray-400">Pending:</span>
@@ -1484,7 +1665,7 @@ function loadCustomerDevices(customerId, container = 'device-management-list') {
                                 </span>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
             `;
             devicesList.appendChild(deviceElement);

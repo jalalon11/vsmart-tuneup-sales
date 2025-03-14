@@ -113,6 +113,22 @@
                 
                 // Dispatch a custom event to let page scripts know navigation is complete
                 document.dispatchEvent(new CustomEvent('page:loaded'));
+                
+                // Reinitialize customer page event handlers
+                if (url.includes('/customers')) {
+                    // Wait a tiny bit to ensure all scripts have loaded
+                    setTimeout(() => {
+                        reinitializeCustomerEventHandlers();
+                        
+                        // Ensure the key modal functions are available globally
+                        if (typeof openModal === 'function') window.openModal = openModal;
+                        if (typeof closeModal === 'function') window.closeModal = closeModal;
+                        if (typeof showModal === 'function') window.showModal = showModal;
+                        if (typeof hideModal === 'function') window.hideModal = hideModal;
+                        
+                        console.log('Customer handler reinitialization complete');
+                    }, 200);
+                }
 
             } catch (error) {
                 console.error('Navigation error:', error);
@@ -345,6 +361,108 @@
                         }
                     }
                 });
+            });
+
+            // Function to reinitialize all customer page event handlers
+            function reinitializeCustomerEventHandlers() {
+                console.log('Reinitializing customer event handlers');
+                
+                // Make sure the modal functions are available
+                if (typeof showModal === 'function') {
+                    window.showModal = showModal;
+                }
+                
+                if (typeof hideModal === 'function') {
+                    window.hideModal = hideModal;
+                }
+                
+                if (typeof openModal === 'function') {
+                    window.openModal = openModal;
+                    
+                    // Add New Customer button
+                    const addNewCustomerBtn = document.querySelector('button[onclick="openModal()"]');
+                    if (addNewCustomerBtn) {
+                        addNewCustomerBtn.onclick = function() {
+                            openModal();
+                        };
+                    }
+                }
+                
+                // View customer buttons
+                const viewButtons = document.querySelectorAll('button[onclick^="openViewModal"]');
+                viewButtons.forEach(button => {
+                    const customerId = button.getAttribute('data-customer-id');
+                    button.onclick = function() {
+                        if (typeof openViewModal === 'function') {
+                            openViewModal(customerId);
+                        } else {
+                            console.error('openViewModal function not found');
+                        }
+                    };
+                });
+                
+                // Other buttons with onclick handlers
+                document.querySelectorAll('button[onclick]').forEach(button => {
+                    const onclickValue = button.getAttribute('onclick');
+                    if (onclickValue && !button.customHandlerAttached) {
+                        const handlerName = onclickValue.split('(')[0];
+                        const params = onclickValue.match(/\((.*)\)/);
+                        
+                        button.customHandlerAttached = true;
+                        button.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            
+                            if (typeof window[handlerName] === 'function') {
+                                // For buttons that use dataset attributes
+                                if (onclickValue.includes('this.dataset')) {
+                                    const customerId = this.getAttribute('data-customer-id');
+                                    window[handlerName](customerId);
+                                } else {
+                                    // Try to execute the original function
+                                    try {
+                                        // Extract parameters and execute safely
+                                        const paramValue = params ? params[1].replace(/['"]/g, '') : '';
+                                        if (paramValue) {
+                                            window[handlerName](paramValue);
+                                        } else {
+                                            window[handlerName]();
+                                        }
+                                    } catch (err) {
+                                        console.error('Error executing handler:', err);
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+                
+                // Forms with custom handlers
+                const deleteForms = document.querySelectorAll('.delete-customer-form');
+                deleteForms.forEach(form => {
+                    if (!form.hasSubmitListener) {
+                        form.hasSubmitListener = true;
+                        form.addEventListener('submit', function(e) {
+                            e.preventDefault();
+                            if (confirm('Are you sure you want to delete this customer?')) {
+                                form.submit();
+                            }
+                        });
+                    }
+                });
+            }
+
+            // Call when page first loads
+            document.addEventListener('DOMContentLoaded', function() {
+                if (window.location.pathname.includes('/customers')) {
+                    reinitializeCustomerEventHandlers();
+                }
+            });
+
+            // Also reinitialize on SPA navigation completion
+            document.addEventListener('page:loaded', function() {
+                if (window.location.pathname.includes('/customers')) {
+                    reinitializeCustomerEventHandlers();
+                }
             });
 
             // Ensure Alpine.js is properly initialized

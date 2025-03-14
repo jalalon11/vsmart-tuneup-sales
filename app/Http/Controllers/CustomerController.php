@@ -93,7 +93,7 @@ class CustomerController extends Controller
             ]);
         }
 
-        return Redirect::route('customers.show', $customer)
+        return Redirect::route('customers.index')
             ->with('success', "Customer '{$customer->name}' has been created successfully.");
     }
 
@@ -313,18 +313,40 @@ class CustomerController extends Controller
                 }])
                 ->get()
                 ->map(function($device) {
-                    // Get the latest repair status
+                    // Get the latest repair
                     $latestRepair = $device->repairs->first();
-                    $status = $latestRepair ? $latestRepair->status : 'no_repairs';
+                    
+                    // Determine status based on latest repair
+                    $status = 'received'; // default status
+                    if ($latestRepair) {
+                        switch ($latestRepair->status) {
+                            case 'pending':
+                                $status = 'in_repair';
+                                break;
+                            case 'in_progress':
+                                $status = 'in_repair';
+                                break;
+                            case 'completed':
+                                $status = 'completed';
+                                break;
+                            case 'delivered':
+                                $status = 'completed';
+                                break;
+                            default:
+                                $status = $latestRepair->status;
+                        }
+                    }
                     
                     return [
                         'id' => $device->id,
                         'brand' => $device->brand,
                         'model' => $device->model,
+                        'created_at' => $device->created_at,
                         'status' => $status,
-                        'pending_repairs_count' => $device->repairs->where('status', 'pending')->count(),
-                        'in_progress_repairs_count' => $device->repairs->where('status', 'in_progress')->count(),
-                        'completed_repairs_count' => $device->repairs->where('status', 'completed')->count()
+                        'latest_repair' => $latestRepair ? [
+                            'created_at' => $latestRepair->created_at,
+                            'status' => $latestRepair->status
+                        ] : null
                     ];
                 });
 
