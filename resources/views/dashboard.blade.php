@@ -20,7 +20,7 @@
             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 px-1">Quick Actions</h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <a href="{{ route('repairs.create') }}" 
-                   class="group bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 p-6 rounded-xl shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                   class="group bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 p-6 rounded-xl shadow-lg transition-all duration-300 transform hover:-translate-y-1">
                     <div class="flex items-center">
                         <div class="bg-white/20 rounded-lg p-3 mr-4">
                             <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

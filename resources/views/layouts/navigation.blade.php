@@ -80,43 +80,42 @@
                          x-transition:leave-end="opacity-0 scale-95"
                          class="absolute z-50 mt-2 w-48 rounded-md shadow-lg origin-top-right right-0"
                          style="display: none;">
-                        <div class="rounded-md ring-1 ring-black ring-opacity-5 py-1 bg-white dark:bg-gray-700">
-                            <div class="px-4 py-3 text-sm text-gray-900 dark:text-gray-200 border-b border-gray-100 dark:border-gray-600">
+                        <div class="rounded-md ring-1 ring-black ring-opacity-5 py-1 bg-white dark:bg-gray-800">
+                            <div class="px-4 py-3 text-sm text-gray-900 dark:text-white border-b border-gray-100 dark:border-gray-700">
                                 <div class="font-medium">{{ Auth::user()->name }}</div>
                                 <div class="text-gray-500 dark:text-gray-400 truncate">{{ Auth::user()->email }}</div>
                             </div>
 
-                            <x-dropdown-link :href="route('profile.show')" class="hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <x-dropdown-link :href="route('profile.show')" class="hover:bg-gray-100 dark:hover:bg-gray-700">
                                 <div class="flex items-center">
                                     <svg class="mr-2 h-5 w-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
-                                    {{ __('My Profile') }}
+                                    <span class="text-gray-700 dark:text-gray-300">{{ __('My Profile') }}</span>
                                 </div>
                             </x-dropdown-link>
 
-                            <x-dropdown-link :href="route('reports.generate')" class="hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <x-dropdown-link :href="route('reports.generate')" class="hover:bg-gray-100 dark:hover:bg-gray-700">
                                 <div class="flex items-center">
                                     <svg class="mr-2 h-5 w-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
-                                    {{ __('Sales Reports') }}
+                                    <span class="text-gray-700 dark:text-gray-300">{{ __('Sales Reports') }}</span>
                                 </div>
                             </x-dropdown-link>
 
                             <!-- Authentication -->
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-
                                 <x-dropdown-link :href="route('logout')"
                                         onclick="event.preventDefault();
                                                     this.closest('form').submit();"
-                                        class="hover:bg-gray-100 dark:hover:bg-gray-600">
+                                        class="hover:bg-gray-100 dark:hover:bg-gray-700">
                                     <div class="flex items-center">
                                         <svg class="mr-2 h-5 w-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                         </svg>
-                                        {{ __('Log Out') }}
+                                        <span class="text-gray-700 dark:text-gray-300">{{ __('Log Out') }}</span>
                                     </div>
                                 </x-dropdown-link>
                             </form>
