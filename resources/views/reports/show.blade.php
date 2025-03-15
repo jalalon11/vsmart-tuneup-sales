@@ -1124,6 +1124,11 @@
             font-feature-settings: "tnum";
             font-variant-numeric: tabular-nums;
         }
+
+        .smart-text {
+            font-weight: 700;
+            color: #e10000;
+        }
     }
 </style>
 @endpush
@@ -1133,7 +1138,7 @@
     <div class="print-layout">
         <!-- Header -->
         <div class="print-header">
-            <h1>VSMART TUNE UP</h1>
+            <h1>V<span class="smart-text">SMART</span> TUNE UP</h1>
             <p>Sales Performance Report - {{ $periodLabel }}</p>
         </div>
 
@@ -1152,9 +1157,9 @@
                 <table class="print-table summary-table">
                     <thead>
                         <tr>
-                            <th>Metric</th>
-                            <th>Value</th>
-                            <th>Details</th>
+                            <th style="width: 30%;">Metric</th>
+                            <th style="width: 30%;">Value</th>
+                            <th style="width: 40%;">Details</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1192,11 +1197,11 @@
                 <table class="print-table">
                     <thead>
                         <tr>
-                            <th>Service Type</th>
-                            <th>Jobs</th>
-                            <th>Revenue</th>
-                            <th>Average</th>
-                            <th>Share</th>
+                            <th style="width: 30%;" >Service Type</th>
+                            <th style="width: 20%;">Jobs</th>
+                            <th style="width: 20%;">Revenue</th>
+                            <th style="width: 20%;">Average</th>
+                            <th style="width: 30%;">Share</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1223,11 +1228,11 @@
                 <table class="print-table">
                     <thead>
                         <tr>
-                            <th>Customer Name</th>
-                            <th>Total Jobs</th>
-                            <th>Total Revenue</th>
-                            <th>Average Spend</th>
-                            <th>Revenue Share</th>
+                            <th style="width: 30%;" >Customer Name</th>
+                            <th style="width: 20%;">Total Service</th>
+                            <th style="width: 20%;">Total Revenue</th>
+                            <th style="width: 20%;">Average Spend</th>
+                            <th style="width: 30%;">Revenue Share</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -199,7 +199,7 @@
 
         <div class="receipt-title">
             <div class="receipt-number">Receipt #{{ str_pad($repair->id, 6, '0', STR_PAD_LEFT) }}</div>
-            <div class="receipt-date">Date: {{ $repair->completed_at ? $repair->completed_at->timezone('Asia/Manila')->format('F j, Y g:i A') : $repair->created_at->timezone('Asia/Manila')->format('F j, Y g:i A') }} PHT</div>
+            <div class="receipt-date">Date: {{ now()->timezone('Asia/Manila')->format('F j, Y g:i A') }} PHT</div>
             <div class="payment-method">Payment Method: {{ ucfirst($repair->payment_method) }}</div>
         </div>
 
